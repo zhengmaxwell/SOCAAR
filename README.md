@@ -1,1 +1,1 @@
-Used for University of Toronto - Souuthern Ontario Centre of Atmospheric Aerosol Research
+Used for University of Toronto - Southern Ontario Centre of Atmospheric Aerosol Research
