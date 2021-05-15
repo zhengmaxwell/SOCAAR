@@ -1,11 +1,59 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+import psycopg2
 from typing import Dict
 
 class Pollutant_Concentrations():
 
-    def __init__(self):
-        pass
+    def __init__(self, host: str, database: str, user: str, password: str):
+
+        self.host = host
+        self.database = database
+        self.user = user
+        self.password = password
+        self.conn = None
+
+    def _connect(self) -> None:
+
+        try:
+            conn = psycopg2.connect(
+                host = self.host,
+                database = self.database,
+                user = self.user,
+                password = self.password
+            )
+
+            self.conn = conn
+
+        except:
+            raise Exception("Failed to connect")
+
+    def create_table(self) -> None:
+
+        if not self.conn:
+            self._connect()
+
+        command = """
+            CREATE TABLE socaar.POLLUTANT_CONCENTRATIONS(
+                id SERIAL PRIMARY KEY,
+                added_at TIMESTAMP WITH TIME ZONE DEFAULT_TIMESTAMP,
+                year INTEGER NOT NULL CHECK (year <= DATE_PART('year', now())),
+                month INTEGER NOT NULL CHECK (month >= 1 and month <= 12),
+                day INTEGER NOT NULL CHECK (day >= 1 and day <= 31),
+                hour INTEGER NOT NULL CHECK (hour >= 0 and hour <= 23),
+                city VARCHAR NOT NULL,
+                o3 FLOAT,
+                pm2_b FLOAT,
+                no2 FLOAT,
+                so2 FLOAT,
+                co FLOAT
+            )
+        """
+
+        cur = self.conn.cursor()
+        cur.execute(command)
+        cur.close()
+        conn.commit()
 
 
     def _get_data(self, day: int, month: int, year: int, hour: int) -> Dict[str, Dict[str, float]]:
