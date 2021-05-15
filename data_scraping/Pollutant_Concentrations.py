@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import psycopg2
 from datetime import timedelta, datetime
 import sys
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 
 
@@ -150,6 +150,6 @@ class Pollutant_Concentrations():
             data[city] = {}
 
             for col in range(1, len(td)):
-                data[city][column_order[col]] = 0 if (not td[col].div or not td[col].div.text.isnumeric()) else td[col].div.text
+                data[city][column_order[col]] = 0 if (not td[col].div or not td[col].div.text.replace('.', '').isdigit()) else td[col].div.text
 
         return data
