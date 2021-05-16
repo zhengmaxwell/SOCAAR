@@ -22,21 +22,13 @@ class Pollutant_Concentrations():
         self._create_table()
 
 
-    def insert_data(self, year: int, month: int, day: int, hour: int) -> None:
+    def update_data(self) -> None:
 
-        command = f"SELECT COUNT(*) FROM {self.table} WHERE year = {year} AND month = {month} AND day = {day} AND hour = {hour}"
-        count = self.command(command, 'r')[0][0]
+        valid_time_range = self._get_valid_time_range()
 
-        if count == 0: # check if data already exists
-            data = self._get_data(year, month, day, hour)
-
-            for city in data:
-                command = f"""
-                    INSERT INTO {self.table} (year, month, day, hour, city, o3, pm2_5, no2, so2, co) 
-                    VALUES ({year}, {month}, {day}, {hour}, '{city}', {data[city]["O3"]}, {data[city]["PM2.5"]}, {data[city]["NO2"]}, {data[city]["SO2"]}, {data[city]["CO"]})
-                """
-
-                self._command(command, 'w')
+        for t in valid_time_range:
+            year, month, day, hour = t.year, t.month, t.day, t.hour
+            self._insert_data(year, month, day, hour)
 
 
     def _connect(self) -> None:
@@ -59,7 +51,7 @@ class Pollutant_Concentrations():
     def _create_table(self) -> None:
 
         command = "SELECT * FROM pg_catalog.pg_tables"
-        rows = self.command(command, 'r')
+        rows = self._command(command, 'r')
  
         if self.table not in [row[1] for row in rows]: # only create if does not exist yet
 
@@ -80,7 +72,7 @@ class Pollutant_Concentrations():
                 )
             """
 
-            self.command(command)
+            self._command(command)
             
             
     def _command(self, command: str, mode: str) -> Union[None, str]:
@@ -108,11 +100,28 @@ class Pollutant_Concentrations():
             self.conn.commit()
 
 
+    def _insert_data(self, year: int, month: int, day: int, hour: int) -> None:
+
+            command = f"SELECT COUNT(*) FROM {self.table} WHERE year = {year} AND month = {month} AND day = {day} AND hour = {hour}"
+            count = self._command(command, 'r')[0][0]
+
+            if count == 0: # check if data already exists
+                data = self._get_data(year, month, day, hour)
+
+                for city in data:
+                    command = f"""
+                        INSERT INTO {self.table} (year, month, day, hour, city, o3, pm2_5, no2, so2, co) 
+                        VALUES ({year}, {month}, {day}, {hour}, '{city}', {data[city]["O3"]}, {data[city]["PM2.5"]}, {data[city]["NO2"]}, {data[city]["SO2"]}, {data[city]["CO"]})
+                    """
+
+                    self._command(command, 'w')
+
+
     def _get_valid_time_range(self) -> List[datetime]:
         
         command = f"SELECT * FROM {self.table} ORDER BY year DESC, month DESC, day DESC, hour DESC LIMIT 1"
-        row = self.command(command, 'r')
-        most_recent = datetime(row[0][2], row[0][3], row[0][4], row[0][5]) if row else datetime.now() # returns current datetime if no entries yet
+        row = self._command(command, 'r')
+        most_recent = datetime(row[0][2], row[0][3], row[0][4], row[0][5]) if row else datetime.now() - timedelta(hours=1) # returns current datetime if no entries yet
         
         now = datetime.now()
         hours = int(divmod((now - most_recent).total_seconds(), 3600)[0])
