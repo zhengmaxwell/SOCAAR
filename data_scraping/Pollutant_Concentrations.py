@@ -65,7 +65,7 @@ class Pollutant_Concentrations():
                     hour INTEGER NOT NULL CHECK (hour >= 0 and hour <= 23),
                     city VARCHAR NOT NULL,
                     o3 FLOAT,
-                    pm2_b FLOAT,
+                    pm2_5 FLOAT,
                     no2 FLOAT,
                     so2 FLOAT,
                     co FLOAT
