@@ -53,7 +53,7 @@ class Pollutant_Concentrations():
         command = "SELECT * FROM pg_catalog.pg_tables"
         rows = self._command(command, 'r')
  
-        if self.table not in [row[1] for row in rows]: # only create if does not exist yet
+        if self.table.lower() not in [row[1].lower() for row in rows]: # only create if does not exist yet
 
             command = f"""
                 CREATE TABLE {self.table}(
@@ -72,7 +72,7 @@ class Pollutant_Concentrations():
                 )
             """
 
-            self._command(command)
+            self._command(command, 'w')
             
             
     def _command(self, command: str, mode: str) -> Union[None, str]:
