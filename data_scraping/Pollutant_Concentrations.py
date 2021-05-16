@@ -163,3 +163,17 @@ class Pollutant_Concentrations():
                 data[city][column_order[col]] = 0 if (not td[col].div or not td[col].div.text.replace('.', '').isdigit()) else td[col].div.text
 
         return data
+
+
+
+
+if __name__ == "__main__":
+
+    HOST = "192.168.200.72"
+    DATABASE = "postgres"
+    USER = "socaar_reader"
+    PASSWORD = "wallberg123!"
+    TABLE = "POLLUTANT_CONCENTRATIONS"
+
+    pc = Pollutant_Concentrations(HOST, DATABASE, USER, PASSWORD, TABLE)
+    pc.update_data()
