@@ -19,9 +19,44 @@ class Pollutant_Concentrations():
         self.table = table
 
         self._connect()
+        self._create_table()
 
 
-    def create_table(self) -> None:
+    def insert_data(self, year: int, month: int, day: int, hour: int) -> None:
+
+        command = f"SELECT COUNT(*) FROM {self.table} WHERE year = {year} AND month = {month} AND day = {day} AND hour = {hour}"
+        count = self.command(command, 'r')[0][0]
+
+        if count == 0: # check if data already exists
+            data = self._get_data(year, month, day, hour)
+
+            for city in data:
+                command = f"""
+                    INSERT INTO {self.table} (year, month, day, hour, city, o3, pm2_5, no2, so2, co) 
+                    VALUES ({year}, {month}, {day}, {hour}, '{city}', {data[city]["O3"]}, {data[city]["PM2.5"]}, {data[city]["NO2"]}, {data[city]["SO2"]}, {data[city]["CO"]})
+                """
+
+                self._command(command, 'w')
+
+
+    def _connect(self) -> None:
+
+        try:
+            conn = psycopg2.connect(
+                host = self.host,
+                database = self.database,
+                user = self.user,
+                password = self.password
+            )
+
+            self.conn = conn
+
+        except Exception as e:
+            print(e)
+            sys.exit()
+
+
+    def _create_table(self) -> None:
 
         command = "SELECT * FROM pg_catalog.pg_tables"
         rows = self.command(command, 'r')
@@ -46,9 +81,9 @@ class Pollutant_Concentrations():
             """
 
             self.command(command)
-
-
-    def command(self, command: str, mode: str) -> Union[None, str]:
+            
+            
+    def _command(self, command: str, mode: str) -> Union[None, str]:
 
         if mode not in ('r', 'w'): # read and write
             print("ERROR: mode parameter must be 'r' or 'w'")
@@ -71,40 +106,6 @@ class Pollutant_Concentrations():
         else:
             cur.close()
             self.conn.commit()
-
-
-    def insert_data(self, year: int, month: int, day: int, hour: int) -> None:
-
-        command = f"SELECT COUNT(*) FROM {self.table}"
-        count = self.command(command, 'r')[0][0]
-
-        if count == 0: # check if data already exists
-            data = self._get_data(year, month, day, hour)
-
-            for city in data:
-                command = f"""
-                    INSERT INTO {self.table} (year, month, day, hour, city, o3, pm2_5, no2, so2, co) 
-                    VALUES ({year}, {month}, {day}, {hour}, '{city}', {data[city]["O3"]}, {data[city]["PM2.5"]}, {data[city]["NO2"]}, {data[city]["SO2"]}, {data[city]["CO"]})
-                """
-
-                self.command(command, 'w')
-
-
-    def _connect(self) -> None:
-
-        try:
-            conn = psycopg2.connect(
-                host = self.host,
-                database = self.database,
-                user = self.user,
-                password = self.password
-            )
-
-            self.conn = conn
-
-        except Exception as e:
-            print(e)
-            sys.exit()
 
 
     def _get_valid_time_range(self) -> List[datetime]:
