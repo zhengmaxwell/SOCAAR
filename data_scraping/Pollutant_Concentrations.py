@@ -172,7 +172,7 @@ if __name__ == "__main__":
     HOST = "192.168.200.72"
     DATABASE = "postgres"
     USER = "socaar_reader"
-    PASSWORD = "wallberg123!"
+    PASSWORD = "wallberg123"
     TABLE = "POLLUTANT_CONCENTRATIONS"
 
     pc = Pollutant_Concentrations(HOST, DATABASE, USER, PASSWORD, TABLE)
