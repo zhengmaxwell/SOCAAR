@@ -12,7 +12,7 @@ from typing import Dict, List, Union
 class MOE_Pollutant_Concentrations():
 
 
-    TABLE = "moe_MOE_Pollutant_Concentrations"
+    TABLE = "moe_pollutant_concentrations"
 
 
     def __init__(self, host: str, database: str, user: str, password: str) -> None:
@@ -206,7 +206,6 @@ if __name__ == "__main__":
     DATABASE = "postgres"
     USER = "socaar_reader"
     PASSWORD = "wallberg123"
-    TABLE = "MOE_Pollutant_Concentrations"
 
     pc = MOE_Pollutant_Concentrations(HOST, DATABASE, USER, PASSWORD)
     pc.update_data()
