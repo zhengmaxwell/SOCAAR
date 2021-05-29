@@ -207,5 +207,5 @@ if __name__ == "__main__":
     USER = "socaar_reader"
     PASSWORD = "wallberg123"
 
-    pc = MOE_Pollutant_Concentrations(HOST, DATABASE, USER, PASSWORD)
-    pc.update_data()
+    moe = MOE_Pollutant_Concentrations(HOST, DATABASE, USER, PASSWORD)
+    moe.update_data()
