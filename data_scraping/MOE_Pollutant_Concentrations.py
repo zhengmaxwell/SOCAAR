@@ -1,3 +1,4 @@
+from .Postgres import Postgres
 import sys
 import os
 from urllib.request import urlopen
@@ -17,13 +18,8 @@ class MOE_Pollutant_Concentrations():
 
     def __init__(self, host: str, database: str, user: str, password: str) -> None:
 
-        self.host = host
-        self.database = database
-        self.user = user
-        self.password = password
-        self.conn = None
+        self._psql = Postgres(host, database, user, password)
 
-        self._connect()
         self._create_table()
 
 
@@ -36,27 +32,11 @@ class MOE_Pollutant_Concentrations():
             self._insert_data(year, month, day, hour)
 
 
-    def _connect(self) -> None:
-
-        try:
-            conn = psycopg2.connect(
-                host = self.host,
-                database = self.database,
-                user = self.user,
-                password = self.password
-            )
-
-            self.conn = conn
-
-        except Exception as e:
-            print(e)
-            sys.exit()
-
-    def _create_table(self) -> None: # TODO: create CITY table and join with this table
+    def _create_table(self) -> None:
 
         self._create_moe_stations_table()
 
-        if not self._does_table_exist(MOE_Pollutant_Concentrations.TABLE):
+        if not self._psql.does_table_exist(MOE_Pollutant_Concentrations.TABLE):
             command = f"""
                 CREATE TABLE {MOE_Pollutant_Concentrations.TABLE} (
                     id SERIAL PRIMARY KEY,
@@ -74,11 +54,11 @@ class MOE_Pollutant_Concentrations():
                     FOREIGN KEY(moe_station) REFERENCES moe_stations(id)
                 )
             """
-            self._command(command, 'w')
+            self._psql.command(command, 'w')
 
     def _create_moe_stations_table(self) -> None:
 
-        if not self._does_table_exist("moe_stations"):
+        if not self._psql.does_table_exist("moe_stations"):
             moe_file = open(f"{os.path.dirname(__file__)}/station_data/moe.json", 'r')
             data = json.loads(moe_file.read())
 
@@ -91,7 +71,7 @@ class MOE_Pollutant_Concentrations():
                     longitude FLOAT NOT NULL
                 )
             """
-            self._command(command, 'w')
+            self._psql.command(command, 'w')
 
             for row in data:
                 try:
@@ -100,17 +80,10 @@ class MOE_Pollutant_Concentrations():
                         VALUES ({row["MOE ID"]}, %(name)s, {row["LATITUDE"]}, {row["LONGITUDE"]})
                         """
                     str_params = {"name": row["AQHI STATION NAME"]}
-                    self._command(command, 'w', str_params=str_params)
+                    self._psql.command(command, 'w', str_params=str_params)
                 except:
                     breakpoint()
                     sys.exit()
-
-    def _does_table_exist(self, table: str) -> bool:
-
-        command = "SELECT * FROM pg_catalog.pg_tables"
-        rows = self._command(command, 'r')
-
-        return table.lower() in [row[1].lower() for row in rows]
 
     def _insert_data(self, year: int, month: int, day: int, hour: int) -> None:
 
@@ -120,18 +93,18 @@ class MOE_Pollutant_Concentrations():
             
             command = f"SELECT id FROM moe_stations WHERE name = %(city)s"
             str_params = {"city": city}
-            moe_station_id = self._command(command, 'r', str_params)[0][0]
+            moe_station_id = self._psql.command(command, 'r', str_params)[0][0]
 
             command = f"""
                 INSERT INTO {MOE_Pollutant_Concentrations.TABLE} (year, month, day, hour, moe_station, o3, pm2_5, no2, so2, co) 
                 VALUES ({year}, {month}, {day}, {hour}, {moe_station_id}, {data[city]["O3"]}, {data[city]["PM2.5"]}, {data[city]["NO2"]}, {data[city]["SO2"]}, {data[city]["CO"]})
             """
-            self._command(command, 'w')
+            self._psql.command(command, 'w')
 
     def _get_valid_time_range(self) -> List[datetime]:
         
         command = f"SELECT * FROM {MOE_Pollutant_Concentrations.TABLE} ORDER BY year DESC, month DESC, day DESC, hour DESC LIMIT 1"
-        row = self._command(command, 'r')
+        row = self._psql.command(command, 'r')
         most_recent = datetime(row[0][2], row[0][3], row[0][4], row[0][5]) if row else datetime.now() - timedelta(hours=1) # returns current datetime if no entries yet
         
         now = datetime.now()
@@ -139,30 +112,6 @@ class MOE_Pollutant_Concentrations():
         time_range = [most_recent + timedelta(hours=i) for i in range(1, hours+1)]
 
         return time_range
-        
-    def _command(self, command: str, mode: str, str_params: Dict[str, str]={}) -> Union[None, str]:
-
-        if mode not in ('r', 'w'): # read and write
-            print("ERROR: mode parameter must be 'r' or 'w'")
-            sys.exit()
-
-        cur = self.conn.cursor()
-
-        try:
-            cur.execute(command, str_params)
-        except Exception as e:
-            print(e)
-            sys.exit()
-        
-        if mode == 'r':
-            rows = cur.fetchall()
-            cur.close()
-            
-            return rows
-
-        else:
-            cur.close()
-            self.conn.commit()
 
     def _get_data(self, year: int, month: int, day: int, hour: int) -> Dict[str, Dict[str, float]]:
 
