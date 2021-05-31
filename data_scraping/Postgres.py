@@ -8,7 +8,7 @@ class Postgres():
     def __init__(self, host: str, database: str, user: str, password: str) -> None:
 
         self.host = host
-        self.db = database
+        self.database = database
         self.user = user
         self.password = password
         self.conn = None
@@ -54,7 +54,7 @@ class Postgres():
         try:
             conn = psycopg2.connect(
                 host = self.host,
-                database = self.db,
+                database = self.database,
                 user = self.user,
                 password = self.password
             )

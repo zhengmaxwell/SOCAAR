@@ -1,12 +1,12 @@
 from .Postgres import Postgres
-import sys
+import sys # TODO: maybe remove
 import os
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import psycopg2
 from datetime import timedelta, datetime
 import json
-from typing import Dict, List, Union
+from typing import Dict, List
 
 
 
@@ -14,6 +14,7 @@ class MOE_Pollutant_Concentrations():
 
 
     TABLE = "moe_pollutant_concentrations"
+    MOE_STATIONS_TABLE = "moe_stations"
 
 
     def __init__(self, host: str, database: str, user: str, password: str) -> None:
@@ -58,12 +59,12 @@ class MOE_Pollutant_Concentrations():
 
     def _create_moe_stations_table(self) -> None:
 
-        if not self._psql.does_table_exist("moe_stations"):
+        if not self._psql.does_table_exist(MOE_Pollutant_Concentrations.MOE_STATIONS_TABLE):
             moe_file = open(f"{os.path.dirname(__file__)}/station_data/moe.json", 'r')
             data = json.loads(moe_file.read())
 
             command = f"""
-                CREATE TABLE MOE_STATIONS (
+                CREATE TABLE {MOE_Pollutant_Concentrations.MOE_STATIONS_TABLE} (
                     id SERIAL PRIMARY KEY,
                     moe_id INTEGER NOT NULL,
                     name VARCHAR NOT NULL,
@@ -74,16 +75,12 @@ class MOE_Pollutant_Concentrations():
             self._psql.command(command, 'w')
 
             for row in data:
-                try:
-                    command = f"""
-                        INSERT INTO MOE_STATIONS (moe_id, name, latitude, longitude)
-                        VALUES ({row["MOE ID"]}, %(name)s, {row["LATITUDE"]}, {row["LONGITUDE"]})
-                        """
-                    str_params = {"name": row["AQHI STATION NAME"]}
-                    self._psql.command(command, 'w', str_params=str_params)
-                except:
-                    breakpoint()
-                    sys.exit()
+                command = f"""
+                    INSERT INTO {MOE_Pollutant_Concentrations.MOE_STATIONS_TABLE} (moe_id, name, latitude, longitude)
+                    VALUES ({row["MOE ID"]}, %(name)s, {row["LATITUDE"]}, {row["LONGITUDE"]})
+                    """
+                str_params = {"name": row["AQHI STATION NAME"]}
+                self._psql.command(command, 'w', str_params=str_params)
 
     def _insert_data(self, year: int, month: int, day: int, hour: int) -> None:
 
