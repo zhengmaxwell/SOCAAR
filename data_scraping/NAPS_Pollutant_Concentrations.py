@@ -119,7 +119,7 @@ class NAPS_Pollutant_Concentrations():
                     zip_dir = self.__download_file(file_url, filepath)
                     data = self._get_continous_data(filepath) # if not dataTypeVal else self._get_integrated_data(filepath)
                     self._insert_continous_data(data)
-                    self.__delete_files(filename, zip_dir)
+                    self.__delete_files(filepath, zip_dir)
 
     def _insert_continous_data(self, data: List[Dict[str, str]]) -> None:
 
