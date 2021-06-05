@@ -8,6 +8,7 @@ import os
 import csv
 import json
 import psycopg2
+from datetime import datetime
 from typing import Union, List, Dict
 import sys # TODO remove maybe
 
@@ -15,7 +16,7 @@ import sys # TODO remove maybe
 
 class NAPS_Pollutant_Concentrations():
 
-
+    FIRST_YEAR = 1990
     CONTINOUS_TABLE = "naps_continous_pollutant_concentrations"
     NAPS_STATIONS_TABLE = "naps_stations"
 
@@ -26,6 +27,13 @@ class NAPS_Pollutant_Concentrations():
         self._naps_ids = {} # maps naps_id to naps_stations id
 
         self._create_tables()
+
+
+    def update_data(self) -> None:
+
+        for year in self._get_valid_year_range():
+            self._get_data(year, 0) # continous data
+            self._get_data(year, 1) # integrated data
 
 
     def _create_tables(self) -> None:
@@ -83,7 +91,6 @@ class NAPS_Pollutant_Concentrations():
             """
             self._psql.command(command, 'w')
 
-
     def _get_data(self, year: int, dataTypeVal: int) -> None:
 
         # dataTypeVal = 1 -> IntegratedData
@@ -111,14 +118,20 @@ class NAPS_Pollutant_Concentrations():
             if tr[i]["class"][0] != "indexhead": # ignore row from header
                 td = tr[i].find_all("td")
                 description = "Data archive" if dataTypeVal else "Comma separated"
+
                 if td[column_order["Description"]].text == description:
                     filename = td[column_order["Name"]].text
                     filepath = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
                     print(filename) # TODO: remove
                     file_url = url.split('?')[0] + filename
                     zip_dir = self.__download_file(file_url, filepath)
-                    data = self._get_continous_data(filepath) # if not dataTypeVal else self._get_integrated_data(filepath)
-                    self._insert_continous_data(data)
+
+                    if dataTypeVal:
+                        data = self._get_integrated_data(filepath)
+                        self._insert_integrated_data(data)
+                    else:
+                        data = self._get_continous_data(filepath) 
+                        self._insert_continous_data(data)
                     self.__delete_files(filepath, zip_dir)
 
     def _insert_continous_data(self, data: List[Dict[str, str]]) -> None:
@@ -196,7 +209,29 @@ class NAPS_Pollutant_Concentrations():
 
         return total_data
 
-    
+    def _insert_integrated_data(self, data: List[Dict[str, str]]) -> None:
+        pass
+
+    def _get_integrated_data(self, filepath: str) -> List[Dict[str, str]]:
+        pass
+
+    def _get_valid_year_range(self) -> List[int]:
+
+        # changes const value instead of function output in case it returns None
+        start_year = self._get_most_recent_year() or NAPS_Pollutant_Concentrations.FIRST_YEAR-1 
+        year_range = [year for year in range(start_year+1, datetime.now().year)] # up to last year
+
+        return year_range
+        
+    def _get_most_recent_year(self) -> Union[int, None]:
+
+        cmd = f"""
+            SELECT year FROM {NAPS_Pollutant_Concentrations.CONTINOUS_TABLE} ORDER BY year DESC LIMIT 1 
+        """
+        year = self._psql.command(cmd, 'r')
+
+        return None if year == [] else year[0][0]
+
     def __download_file(self, url: str, filepath: str) -> Union[str, None]:
 
         # if file is a zip file, will unzip contents to the same directory and return directory name
@@ -207,7 +242,6 @@ class NAPS_Pollutant_Concentrations():
         if filepath.split('.')[-1] == "zip":
             return self.__unzip_file(filepath)
     
-
     def __unzip_file(self, filepath: str) -> str:
 
         # if file is a zip file, returns name of unzipped directory
@@ -218,7 +252,6 @@ class NAPS_Pollutant_Concentrations():
         zip_file.extractall(os.path.dirname(os.path.realpath(__file__)))
             
         return zip_dir_path
-
 
     def __delete_files(self, filepath: str, zip_dir_path: str) -> None:
 
@@ -235,4 +268,4 @@ class NAPS_Pollutant_Concentrations():
 if __name__ == "__main__":
 
     naps = NAPS_Pollutant_Concentrations()
-    naps._get_data(2019, 1)
+    naps.update_data()
