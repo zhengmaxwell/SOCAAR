@@ -182,30 +182,30 @@ class NAPS_Pollutant_Concentrations():
                         self._psql.command(command, 'w')
     
     def _get_continous_data(self, filepath: str) -> List[Dict[str, str]]:
-
-        csv_file = open(filepath, 'r')
-        csv_reader = csv.reader(csv_file)
-
+        
         column_order = {}
         columns_ordered = False
         total_data = []
         data_len = 31
-        
-        for line in csv_reader:
-            if len(line) == data_len: # only use relevant rows
-                if not columns_ordered: # first row is column headers
-                    for i in range(data_len):
-                        if i in range(7, 31): # remove 'H0' from hour
-                            column_order[i] = int(line[i].split("//")[0].replace('H', '').replace('24', '0')) # TODO: should H24 be midnight
-                        else:
-                            column_order[i] = line[i].split("//")[0]
-                    columns_ordered = True
 
-                else: # data starts
-                    data = {}
-                    for i in range(data_len):
-                        data[column_order[i]] = line[i]
-                    total_data.append(data)
+        with open(filepath, 'r', encoding="utf-8", errors="ignore") as csv_file: # ignores non utf-8 encoded data
+            csv_reader = csv.reader(csv_file)
+
+            for line in csv_reader:
+                if len(line) == data_len: # only use relevant rows
+                    if not columns_ordered: # first row is column headers
+                        for i in range(data_len):
+                            if i in range(7, 31): # remove 'H0' from hour
+                                column_order[i] = int(line[i].split("//")[0].replace('H', '').replace('24', '0')) # TODO: should H24 be midnight
+                            else:
+                                column_order[i] = line[i].split("//")[0]
+                        columns_ordered = True
+
+                    else: # data starts
+                        data = {}
+                        for i in range(data_len):
+                            data[column_order[i]] = line[i]
+                        total_data.append(data)
 
         return total_data
 
