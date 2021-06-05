@@ -1,4 +1,4 @@
 @echo off
-python Pollutant_Concentrations.py
+python MOE_Pollutant_Concentrations.py
 %*
 exit
