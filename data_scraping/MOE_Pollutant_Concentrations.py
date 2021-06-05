@@ -1,4 +1,4 @@
-from .Postgres import Postgres
+from Postgres import Postgres
 import sys # TODO: maybe remove
 import os
 from urllib.request import urlopen

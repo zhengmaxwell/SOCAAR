@@ -1,4 +1,4 @@
-from .Postgres import Postgres
+from Postgres import Postgres
 from urllib.request import Request, urlopen
 import requests
 import zipfile
@@ -272,5 +272,5 @@ if __name__ == "__main__":
     USER = "socaar_reader"
     PASSWORD = "wallberg123"
 
-    naps = NAPS_Pollutant_Concentrations()
+    naps = NAPS_Pollutant_Concentrations(HOST, DATABASE, USER, PASSWORD)
     naps.update_data()
