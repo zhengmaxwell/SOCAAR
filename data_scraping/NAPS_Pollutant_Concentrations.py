@@ -267,5 +267,10 @@ class NAPS_Pollutant_Concentrations():
 
 if __name__ == "__main__":
 
+    HOST = "192.168.200.72"
+    DATABASE = "postgres"
+    USER = "socaar_reader"
+    PASSWORD = "wallberg123"
+
     naps = NAPS_Pollutant_Concentrations()
     naps.update_data()
