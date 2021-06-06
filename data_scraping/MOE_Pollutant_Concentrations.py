@@ -27,7 +27,6 @@ class MOE_Pollutant_Concentrations():
 
     def _create_tables(self) -> None:
 
-        Tables.create_moe_stations(self._psql)
         Tables.create_moe(self._psql)
 
     def _insert_data(self, year: int, month: int, day: int, hour: int) -> None:

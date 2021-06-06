@@ -34,7 +34,6 @@ class NAPS_Pollutant_Concentrations():
 
     def _create_tables(self) -> None:
 
-        Tables.create_naps_stations(self._psql)
         Tables.create_naps_continuous(self._psql)
 
     def _get_data(self, year: int, dataTypeVal: int) -> None:
@@ -141,7 +140,7 @@ class NAPS_Pollutant_Concentrations():
                 if len(line) == data_len: # only use relevant rows
                     if not columns_ordered: # first row is column headers
                         for i in range(data_len):
-                            if i in range(7, 31): # remove 'H0' from hour
+                            if i in range(7, 31): # remove 'H0' from hour TODO: make the range dynamic
                                 column_order[i] = int(line[i].split("//")[0].replace('H', '').replace('24', '0')) # TODO: should H24 be midnight
                             else:
                                 column_order[i] = line[i].split("//")[0]
