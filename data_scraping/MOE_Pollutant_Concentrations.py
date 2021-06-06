@@ -1,11 +1,8 @@
 from Postgres import Postgres
-import sys # TODO: maybe remove
-import os
+from Tables import Tables
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
-import psycopg2
 from datetime import timedelta, datetime
-import json
 from typing import Dict, List
 
 
@@ -13,15 +10,11 @@ from typing import Dict, List
 class MOE_Pollutant_Concentrations():
 
 
-    TABLE = "moe_pollutant_concentrations"
-    MOE_STATIONS_TABLE = "moe_stations"
-
-
     def __init__(self, host: str, database: str, user: str, password: str) -> None:
 
         self._psql = Postgres(host, database, user, password)
 
-        self._create_table()
+        self._create_tables()
 
 
     def update_data(self) -> None:
@@ -32,55 +25,10 @@ class MOE_Pollutant_Concentrations():
             year, month, day, hour = t.year, t.month, t.day, t.hour
             self._insert_data(year, month, day, hour)
 
+    def _create_tables(self) -> None:
 
-    def _create_table(self) -> None:
-
-        self._create_moe_stations_table()
-
-        if not self._psql.does_table_exist(MOE_Pollutant_Concentrations.TABLE):
-            command = f"""
-                CREATE TABLE {MOE_Pollutant_Concentrations.TABLE} (
-                    id SERIAL PRIMARY KEY,
-                    added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                    year INTEGER NOT NULL CHECK (year <= DATE_PART('year', now())),
-                    month INTEGER NOT NULL CHECK (month >= 1 and month <= 12),
-                    day INTEGER NOT NULL CHECK (day >= 1 and day <= 31),
-                    hour INTEGER NOT NULL CHECK (hour >= 0 and hour <= 23),
-                    moe_station INTEGER NOT NULL,
-                    o3 FLOAT,
-                    pm2_5 FLOAT,
-                    no2 FLOAT,
-                    so2 FLOAT,
-                    co FLOAT,
-                    FOREIGN KEY(moe_station) REFERENCES moe_stations(id)
-                )
-            """
-            self._psql.command(command, 'w')
-
-    def _create_moe_stations_table(self) -> None:
-
-        if not self._psql.does_table_exist(MOE_Pollutant_Concentrations.MOE_STATIONS_TABLE):
-            moe_file = open(f"{os.path.dirname(__file__)}/station_data/moe.json", 'r')
-            data = json.loads(moe_file.read())
-
-            command = f"""
-                CREATE TABLE {MOE_Pollutant_Concentrations.MOE_STATIONS_TABLE} (
-                    id SERIAL PRIMARY KEY,
-                    moe_id INTEGER NOT NULL,
-                    name VARCHAR NOT NULL,
-                    latitude FLOAT NOT NULL,
-                    longitude FLOAT NOT NULL
-                )
-            """
-            self._psql.command(command, 'w')
-
-            for row in data:
-                command = f"""
-                    INSERT INTO {MOE_Pollutant_Concentrations.MOE_STATIONS_TABLE} (moe_id, name, latitude, longitude)
-                    VALUES ({row["MOE ID"]}, %(name)s, {row["LATITUDE"]}, {row["LONGITUDE"]})
-                    """
-                str_params = {"name": row["AQHI STATION NAME"]}
-                self._psql.command(command, 'w', str_params=str_params)
+        Tables.create_moe_stations(self._psql)
+        Tables.create_moe(self._psql)
 
     def _insert_data(self, year: int, month: int, day: int, hour: int) -> None:
 

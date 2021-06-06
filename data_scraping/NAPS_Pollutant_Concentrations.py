@@ -1,4 +1,5 @@
 from Postgres import Postgres
+from Tables import Tables
 from urllib.request import Request, urlopen
 import requests
 import zipfile
@@ -6,8 +7,6 @@ import shutil
 from bs4 import BeautifulSoup
 import os
 import csv
-import json
-import psycopg2
 from datetime import datetime
 from typing import Union, List, Dict
 import sys # TODO remove maybe
@@ -17,10 +16,7 @@ import sys # TODO remove maybe
 class NAPS_Pollutant_Concentrations():
 
     FIRST_YEAR = 1990
-    CONTINOUS_TABLE = "naps_continous_pollutant_concentrations"
-    NAPS_STATIONS_TABLE = "naps_stations"
-
-
+    
     def __init__(self, hostname, database, user, password) -> None:
         
         self._psql = Postgres(hostname, database, user, password)
@@ -38,58 +34,8 @@ class NAPS_Pollutant_Concentrations():
 
     def _create_tables(self) -> None:
 
-        self._create_naps_stations_table()
-        self._create_naps_continous_pollutant_concentrations_table()
-
-    def _create_naps_stations_table(self) -> None:
-
-        if not self._psql.does_table_exist(NAPS_Pollutant_Concentrations.NAPS_STATIONS_TABLE):
-            naps_file = open(f"{os.path.dirname(__file__)}/station_data/naps.json", 'r')
-            data = json.loads(naps_file.read())
-
-            command = f"""
-                CREATE TABLE {NAPS_Pollutant_Concentrations.NAPS_STATIONS_TABLE} (
-                    id SERIAL PRIMARY KEY,
-                    naps_id INTEGER NOT NULL,
-                    name VARCHAR NOT NULL,
-                    latitude FLOAT,
-                    longitude FLOAT
-                )
-            """
-            self._psql.command(command, 'w')
-
-            for row in data:
-                command = f"""
-                    INSERT INTO {NAPS_Pollutant_Concentrations.NAPS_STATIONS_TABLE} (naps_id, name, latitude, longitude)
-                    VALUES ({row["NAPS_ID"]}, %(name)s, {row["Latitude"] or "Null"}, {row["Longitude"] or "Null"})
-                """
-                str_params = {"name": row["Station_Name"]}
-                self._psql.command(command, 'w', str_params=str_params)
-
-    def _create_naps_continous_pollutant_concentrations_table(self) -> None:
-
-        if not self._psql.does_table_exist(NAPS_Pollutant_Concentrations.CONTINOUS_TABLE):
-            command = f"""
-                CREATE TABLE {NAPS_Pollutant_Concentrations.CONTINOUS_TABLE} (
-                    id SERIAL PRIMARY KEY,
-                    added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                    year INTEGER NOT NULL CHECK (year <= DATE_PART('year', now())),
-                    month INTEGER NOT NULL CHECK (month >= 1 and month <= 12),
-                    day INTEGER NOT NULL CHECK (day >= 1 and day <= 31),
-                    hour INTEGER NOT NULL CHECK (hour >=0 and hour <= 23),
-                    naps_station INTEGER NOT NULL,
-                    co FLOAT,
-                    no FLOAT,
-                    no2 FLOAT,
-                    nox FLOAT,
-                    o3 FLOAT,
-                    pm10 FLOAT,
-                    pm25 FLOAT,
-                    so2 FLOAT,
-                    FOREIGN KEY(naps_station) REFERENCES naps_stations(id)
-                )
-            """
-            self._psql.command(command, 'w')
+        Tables.create_naps_stations(self._psql)
+        Tables.create_naps_continuous(self._psql)
 
     def _get_data(self, year: int, dataTypeVal: int) -> None:
 
