@@ -1,0 +1,14 @@
+[
+    {
+        "Sample Type": "R",
+        "Description": "Routine Sample"
+    },
+    {
+        "Sample Type": "TB",
+        "Description": "Travel Blank (Sampling Date is the date the blank sample was shipped to the sampling station)"
+    },
+    {
+        "Sample Type": "FB",
+        "Description": "Field Blank (Sampling Date is the date the blank sample was loaded into the sampler"
+    }
+]

@@ -1,0 +1,18 @@
+[
+    {
+        "Observation Type": "G",
+        "Description": "Gas-phase (Volatile)"
+    },
+    {
+        "Observation Type": "FP",
+        "Description": "Fine Particulate Matter (PM2.5)"
+    },
+    {
+        "Observation Type": "CP",
+        "Description": "Coarse Particulate Matter (PM2.5-10)"
+    },
+    {
+        "Observation Type": "TP",
+        "Description": "Total Particulate (PM30)"
+    }
+]

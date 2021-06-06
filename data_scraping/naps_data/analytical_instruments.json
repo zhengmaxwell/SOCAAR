@@ -1,0 +1,38 @@
+[
+    {
+        "Analytical Instrument": "HPLC",
+        "Description": "High Performance Liquid Chromatograph"
+    },
+    {
+        "Analytical Instrument": "ED-XRF",
+        "Description": "Energy Dispersive X-ray Fluorescence Spectrometer"
+    },
+    {
+        "Analytical Instrument": "IC",
+        "Description": "Ion Chromatograph"
+    },
+    {
+        "Analytical Instrument": "IC/PAD",
+        "Description": "Ion Chromatograph with Pulsed Amperometric Detection"
+    },
+    {
+        "Analytical Instrument": "ICP/MS",
+        "Description": "Indictively Coupled Plasma - Mass Spectrometer"
+    },
+    {
+        "Analytical Instrument": "TOR (OC/EC)",
+        "Description": "Thermal/Optical Reflectance Organic Carbon/Elemental Carbon Analyzer"
+    },
+    {
+        "Analytical Instrument": "Microbalance",
+        "Description": "Microbalance"
+    },
+    {
+        "Analytical Instrument": "GC/MS",
+        "Description": "Gas Chromatograph with Mass Spectrometry Detection"
+    },
+    {
+        "Analytical Instrument": "GC/FID",
+        "Description": "Gas Chromatograph with Flame Ionization Detection"
+    }
+]

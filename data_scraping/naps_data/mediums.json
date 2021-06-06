@@ -1,0 +1,38 @@
+[
+    {
+        "Medium": "DNPH",
+        "Description": "2,4-dinitrophenylhydrazine (DNPH) coated silica gel catridge"
+    },
+    {
+        "Medium": "TF",
+        "Description": "Teflon Membrane Filter"
+    },
+    {
+        "Medium": "NF",
+        "Description": "Nylon Filter (to collect nitrate loss during sampling)"
+    },
+    {
+        "Medium": "QF",
+        "Description": "Quartz Filter"
+    },
+    {
+        "Medium": "CAD",
+        "Description": "Citric Acid-coated Denuder (to collect gaseous NH3)"
+    },
+    {
+        "Medium": "SCD",
+        "Description": "Na2CO3-coated Denuder (to collect gaseous HNO3, SO2)"
+    },
+    {
+        "Medium": "TGFF",
+        "Description": "Teflon bonded to Glass Fibre Filter"
+    },
+    {
+        "Medium": "PUF",
+        "Description": "2 Polyurethane Foam plugs (to collect semi-volatile organic compounds)"
+    },
+    {
+        "Medium": "CV",
+        "Description": "Summa Canister"
+    }
+]
