@@ -1,0 +1,30 @@
+[
+    {
+        "Validation Code": "V0",
+        "Description": "Valid value"
+    },
+    {
+        "Validation Code": "V1",
+        "Description": "Valid value - below detection limit"
+    },
+    {
+        "Validation Code": "V2",
+        "Description": "Valid value - extreme or unusual value assessed and considered valid"
+    },
+    {
+        "Validation Code": "H1",
+        "Description": "Historical data that have not been assessed or validated"
+    },
+    {
+        "Validation Code": "M1",
+        "Description": "Missing value - no value available"
+    },
+    {
+        "Validation Code": "M2",
+        "Description": "Missing value - invalidated"
+    },
+    {
+        "Validation Code": "",
+        "Description": "Validation has not been completed"
+    }
+]
