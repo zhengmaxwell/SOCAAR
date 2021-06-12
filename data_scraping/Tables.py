@@ -1,11 +1,13 @@
 from Postgres import Postgres
 import os
 import json
+from typing import Union
 
 
 
 class Tables:
 
+    psql = None
     
     MOE = "moe_pollutant_concentrations"
     NAPS_CONTINUOUS = "naps_continuous_pollutant_concentrations"
@@ -18,14 +20,25 @@ class Tables:
     NAPS_OBSERVATION_TYPES = "naps_observation_types"
     NAPS_MEDIUMS = "naps_mediums"
     NAPS_SPECIATION_SAMPLER_CARTRIDGES = "naps_speciation_sampler_cartridges"
+    NAPS_INTEGRATED_CARBONYLS_COMPOUNDS = "naps_integrated_carbonyls_compounds"
+
+    # name: id
+    seen_naps_observation_types = {}
+    seen_naps_mediums = {}
+    seen_naps_analytical_instruments = {}
+
+    @classmethod
+    def connect(cls, psql: Postgres) -> None:
+
+        cls.psql = psql
 
 
     @staticmethod
-    def create_moe(psql: Postgres) -> None:
+    def create_moe() -> None:
 
-        Tables._create_moe_stations(psql)
+        Tables._create_moe_stations()
 
-        if not psql.does_table_exist(Tables.MOE):
+        if not Tables.psql.does_table_exist(Tables.MOE):
             command = f"""
                 CREATE TABLE {Tables.MOE} (
                     id SERIAL PRIMARY KEY,
@@ -43,15 +56,15 @@ class Tables:
                     FOREIGN KEY(moe_station) REFERENCES moe_stations(id)
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
 
     @staticmethod
-    def create_naps_continuous(psql: Postgres) -> None:
+    def create_naps_continuous() -> None:
 
-        Tables._create_naps_stations(psql)
+        Tables._create_naps_stations()
 
-        if not psql.does_table_exist(Tables.NAPS_CONTINUOUS):
+        if not Tables.psql.does_table_exist(Tables.NAPS_CONTINUOUS):
             command = f"""
                 CREATE TABLE {Tables.NAPS_CONTINUOUS} (
                     id SERIAL PRIMARY KEY,
@@ -72,13 +85,74 @@ class Tables:
                     FOREIGN KEY(naps_station) REFERENCES naps_stations(id)
                 )
             """
-            psql.command(command, 'w')
-
+            Tables.psql.command(command, 'w')
 
     @staticmethod
-    def _create_moe_stations(psql: Postgres) -> None:
+    def create_naps_integrated_carbonyls() -> None:
 
-        if not psql.does_table_exist(Tables.MOE_STATIONS):
+        Tables._create_naps_stations()
+        Tables._create_naps_metadata_tables()
+
+        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_CARBONYLYS):
+            command = f"""
+                CREATE TABLE {Tables.NAPS_INTEGRATED_CARBONYLYS} (
+                    id SERIAL PRIMARY KEY,
+                    added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                    sampling_date DATE NOT NULL,
+                    naps_stations INTEGER NOT NULL,
+                    sampling_type INTEGER,
+                    formaldehyde FLOAT,
+                    formaldehyde_mdl FLOAT,
+                    formaldehyde_vflag INTEGER,
+                    acetaldehyde FLOAT,
+                    acetaldehyde_mdl FLOAT,
+                    acetaldehyde_vflag INTEGER,
+                    acetone FLOAT,
+                    acetone_mdl FLOAT,
+                    acdetone_vflag INTEGER,
+                    propionaldehyde FLOAT,
+                    propionaldehyde_mdl FLOAT,
+                    propionaldehyde_vflag INTEGER,
+                    crotonaldehyde FLOAT,
+                    crotonaldehyde_mdl FLOAT,
+                    crotonaldehyde_vflag INTEGER,
+                    mek FLOAT,
+                    mek_mdl FLOAT,
+                    mek_vflag INTEGER,
+                    butyraldehyde/iso-butyraldehyde FLOAT,
+                    butyraldehyde/iso-butyraldehyde_mdl FLOAT,
+                    butyraldehyde/iso-butyraldehyde_vflag INTEGER,
+                    benzaldehyde FLOAT,
+                    benzaldehyde_mdl FLOAT,
+                    benzaldehyde_vflag INTEGER,
+                    isovaleraldehyde FLOAT,
+                    isovaleraldehyde_mdl FLOAT,
+                    isovaleraldehyde_vflag INTEGER,
+                    valeraldehyde FLOAT,
+                    valeraldehyde_mdl FLOAT,
+                    valeraldehyde_vflag INTEGER,
+                    m-tolualdehyde FLOAT,
+                    m-tolualdehyde_mdl FLOAT,
+                    m-tolualdehyde_vflag INTEGER,
+                    p-tolualdehyde FLOAT,
+                    p-tolualdehyde_mdl FLOAT,
+                    p-tolualdehyde_vflag INTEGER,
+                    mibk FLOAT,
+                    mibk_mdl FLOAT,
+                    mibk_vflag,
+                    hexanal FLOAT,
+                    hexanal_mdl FLOAT,
+                    hexanal_vflag INTEGER
+
+
+                )
+
+            """
+
+    @staticmethod
+    def _create_moe_stations() -> None:
+
+        if not Tables.psql.does_table_exist(Tables.MOE_STATIONS):
                 command = f"""
                     CREATE TABLE {Tables.MOE_STATIONS} (
                         id SERIAL PRIMARY KEY,
@@ -88,7 +162,7 @@ class Tables:
                         longitude FLOAT NOT NULL
                     )
                 """
-                psql.command(command, 'w')
+                Tables.psql.command(command, 'w')
 
                 with open(f"{os.path.dirname(__file__)}/station_data/moe.json", 'r') as moe_file:
                     data = json.loads(moe_file.read())
@@ -99,12 +173,12 @@ class Tables:
                         VALUES ({row["MOE ID"]}, %(name)s, {row["LATITUDE"]}, {row["LONGITUDE"]})
                         """
                     str_params = {"name": row["AQHI STATION NAME"]}
-                    psql.command(command, 'w', str_params=str_params)
+                    Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_stations(psql: Postgres) -> None:
+    def _create_naps_stations() -> None:
 
-        if not psql.does_table_exist(Tables.NAPS_STATIONS):
+        if not Tables.psql.does_table_exist(Tables.NAPS_STATIONS):
             command = f"""
                 CREATE TABLE {Tables.NAPS_STATIONS} (
                     id SERIAL PRIMARY KEY,
@@ -114,7 +188,7 @@ class Tables:
                     longitude FLOAT
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
             with open(f"{os.path.dirname(__file__)}/station_data/naps.json", 'r') as naps_file:
                 data = json.loads(naps_file.read())
@@ -125,12 +199,12 @@ class Tables:
                     VALUES ({row["NAPS_ID"]}, %(name)s, {row["Latitude"] or "Null"}, {row["Longitude"] or "Null"})
                 """
                 str_params = {"name": row["Station_Name"]}
-                psql.command(command, 'w', str_params=str_params)
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_validation_codes(psql: Postgres) -> None:
+    def _create_naps_validation_codes() -> None:
 
-        if not psql.does_table_exist(Tables.NAPS_VALIDATION_CODES):
+        if not Tables.psql.does_table_exist(Tables.NAPS_VALIDATION_CODES):
             command = f"""
                 CREATE TABLE {Tables.NAPS_VALIDATION_CODES} (
                     id SERIAL PRIMARY KEY,
@@ -138,7 +212,7 @@ class Tables:
                     description VARCHAR NOT NULL
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
             with open(f"{os.path.dirname(__file__)}/naps_data/validation_codes.json", 'r') as validation_codes_file:
                 data = json.loads(validation_codes_file.read())
@@ -150,12 +224,12 @@ class Tables:
                     VALUES ({name}, %(description)s)
                 """
                 str_params = {"name": row["Validation Code"], "description": row["Description"]}
-                psql.command(command, 'w', str_params=str_params)
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_sample_types(psql: Postgres) -> None:
+    def _create_naps_sample_types() -> None:
 
-        if not psql.does_table_exist(Tables.NAPS_SAMPLE_TYPES):
+        if not Tables.psql.does_table_exist(Tables.NAPS_SAMPLE_TYPES):
             command = f"""
                 CREATE TABLE {Tables.NAPS_SAMPLE_TYPES} (
                     id SERIAL PRIMARY KEY,
@@ -163,7 +237,7 @@ class Tables:
                     description VARCHAR
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
             with open(f"{os.path.dirname(__file__)}/naps_data/sample_types.json", 'r') as sample_types_file:
                 data = json.loads(sample_types_file.read())
@@ -174,15 +248,15 @@ class Tables:
                     VALUES (%(name)s, %(description)s)
                 """
                 str_params = {"name": row["Sample Type"], "description": row["Description"]}
-                psql.command(command, 'w', str_params=str_params)
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_analytical_instruments(psql: Postgres) -> None:
+    def _create_naps_analytical_instruments() -> None:
 
         # GC/MS exists in analytical_instruments.json
         # GC-MS is a duplicate must look for in .xlsx files (PAH)
 
-        if not psql.does_table_exist(Tables.NAPS_ANALYTICAL_INSTRUMENTS):
+        if not Tables.psql.does_table_exist(Tables.NAPS_ANALYTICAL_INSTRUMENTS):
             command = f"""
                 CREATE TABLE {Tables.NAPS_ANALYTICAL_INSTRUMENTS} (
                     id SERIAL PRIMARY KEY,
@@ -190,7 +264,7 @@ class Tables:
                     description VARCHAR
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
             with open(f"{os.path.dirname(__file__)}/naps_data/analytical_instruments.json", 'r') as analytical_instruments_file:
                 data = json.loads(analytical_instruments_file.read())
@@ -201,12 +275,12 @@ class Tables:
                     VALUES (%(name)s, %(description)s)
                 """
                 str_params = {"name": row["Analytical Instrument"], "description": row["Description"]}
-                psql.command(command, 'w', str_params=str_params)
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_observation_types(psql: Postgres) -> None:
+    def _create_naps_observation_types() -> None:
 
-        if not psql.does_table_exist(Tables.NAPS_OBSERVATION_TYPES):
+        if not Tables.psql.does_table_exist(Tables.NAPS_OBSERVATION_TYPES):
             command = f"""
                 CREATE TABLE {Tables.NAPS_OBSERVATION_TYPES} (
                     id SERIAL PRIMARY KEY,
@@ -214,7 +288,7 @@ class Tables:
                     description VARCHAR
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
             with open(f"{os.path.dirname(__file__)}/naps_data/observation_types.json", 'r') as observation_types_file:
                 data = json.loads(observation_types_file.read())
@@ -225,12 +299,12 @@ class Tables:
                     VALUES (%(name)s, %(description)s)
                 """
                 str_params = {"name": row["Observation Type"], "description": row["Description"]}
-                psql.command(command, 'w', str_params=str_params)
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_mediums(psql: Postgres) -> None:
+    def _create_naps_mediums() -> None:
 
-        if not psql.does_table_exist(Tables.NAPS_MEDIUMS):
+        if not Tables.psql.does_table_exist(Tables.NAPS_MEDIUMS):
             command = f"""
                 CREATE TABLE {Tables.NAPS_MEDIUMS} (
                     id SERIAL PRIMARY KEY,
@@ -238,7 +312,7 @@ class Tables:
                     description VARCHAR
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
             with open(f"{os.path.dirname(__file__)}/naps_data/mediums.json", 'r') as mediums_file:
                 data = json.loads(mediums_file.read())
@@ -249,12 +323,12 @@ class Tables:
                     VALUES (%(name)s, %(description)s)
                 """
                 str_params = {"name": row["Medium"], "description": row["Description"]}
-                psql.command(command, 'w', str_params=str_params)
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_speciation_sampler_cartridges(psql: Postgres) -> None:
+    def _create_naps_speciation_sampler_cartridges() -> None:
 
-        if not psql.does_table_exist(Tables.NAPS_SPECIATION_SAMPLER_CARTRIDGES):
+        if not Tables.psql.does_table_exist(Tables.NAPS_SPECIATION_SAMPLER_CARTRIDGES):
             command = f"""
                 CREATE TABLE {Tables.NAPS_SPECIATION_SAMPLER_CARTRIDGES} (
                     id SERIAL PRIMARY KEY,
@@ -262,7 +336,7 @@ class Tables:
                     description VARCHAR
                 )
             """
-            psql.command(command, 'w')
+            Tables.psql.command(command, 'w')
 
             with open(f"{os.path.dirname(__file__)}/naps_data/speciation_sampler_cartridges.json", 'r') as speciation_sampler_cartridges_file:
                 data = json.loads(speciation_sampler_cartridges_file.read())
@@ -273,14 +347,85 @@ class Tables:
                     VALUES (%(name)s, %(description)s)
                 """
                 str_params = {"name": row["Speciation Sampler Cartridge"], "description": row["Description"]}
-                psql.command(command, 'w', str_params=str_params)
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_metadata_tables(psql: Postgres) -> None:
+    def _create_naps_integrated_carbonyls_compounds() -> None:
 
-        Tables._create_naps_validation_codes(psql)
-        Tables._create_naps_sample_types(psql)
-        Tables._create_naps_analytical_instruments(psql)
-        Tables._create_naps_observation_types(psql)
-        Tables._create_naps_mediums(psql)
-        Tables._create_naps_speciation_sampler_cartridges(psql)
+        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS):
+            command = f"""
+                CREATE TABLE {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR NOT NULL,
+                    medium INTEGER,
+                    obsevation_type INTEGER,
+                    analytical_instrument INTEGER,
+                    FOREIGN KEY(medium) REFERENCES naps_mediums(id),
+                    FOREIGN KEY(observation_type) REFERENCES naps_mediums(id),
+                    FOREIGN KEY(analytical_instrument) REFERENCES naps_analytical_instruments(id)
+                )
+            """
+
+            with open(f"{os.path.dirname(__file__)}/naps_data/carbonyls_compounds.json", 'r') as carbonyls_compounds_file:
+                data = json.loads(carbonyls_compounds_file.read())
+
+            for row in data:
+                medium = Tables._get_naps_mediums(row["Medium"])
+                observation_type = Tables._get_naps_observation_types(row["Observation Type"])
+                analytical_instrument = Tables._get_naps_analytical_instruments(row["Analytical Instrument"])
+
+                command = f"""
+                    INSERT INTO {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} (name, medium, observation_type, analytical_instrument)
+                    VALUES (%(name)s, {medium}, {observation_type}, {analytical_instrument})
+                """
+                str_params = {"name": row["Compound"]}
+                Tables.psql.command(command, 'w')
+
+    @classmethod
+    def _get_naps_mediums(cls, medium: str) -> Union[int, None]:
+
+        if medium in cls.seen_naps_mediums:
+            return cls.seen_naps_mediums[medium]
+
+        else:
+            command = f"SELECT id FROM {cls.NAPS_MEDIUMS} WHERE name = %(medium)s"
+            str_params = {"medium": medium}
+            cls.seen_naps_mediums[medium] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+    @classmethod
+    def _get_naps_observation_types(cls, observation_type) -> Union[int, None]:
+
+        if observation_type in cls.seen_naps_observation_types:
+            return cls.seen_naps_observation_types[observation_type]
+
+        else:
+            command = f"SELECT id FROM {cls.NAPS_OBSERVATION_TYPES} WHERE name = %(observation_type)s"
+            str_params = {"observation_type": observation_type}
+            cls.seen_naps_observation_types[observation_type] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+    @classmethod
+    def _get_naps_analytical_instruments(cls, analytical_instrument: str) -> Union[int, None]:
+
+        if analytical_instrument in cls.seen_naps_analytical_instruments:
+            return cls.seen_naps_analytical_instruments[analytical_instrument]
+
+        else:
+            command = f"SELECT id FROM {cls.NAPS_ANALYTICAL_INSTRUMENTS} WHERE name = %(analytical_instrument)s"
+            str_params = {"analytical_instrument": analytical_instrument}
+            cls.seen_naps_analytical_instruments[analytical_instrument] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+
+    @staticmethod
+    def _create_naps_metadata_tables() -> None:
+
+        Tables._create_naps_validation_codes()
+        Tables._create_naps_sample_types()
+        Tables._create_naps_analytical_instruments()
+        Tables._create_naps_observation_types()
+        Tables._create_naps_mediums()
+        Tables._create_naps_speciation_sampler_cartridges()
+
+    @staticmethod
+    def test():
+        Tables._create_moe_stations()
+        Tables.create_moe()

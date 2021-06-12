@@ -34,7 +34,9 @@ class NAPS_Pollutant_Concentrations():
 
     def _create_tables(self) -> None:
 
-        Tables.create_naps_continuous(self._psql)
+        Tables.connect(self._psql)
+        Tables.test()
+        #Tables.create_naps_continuous()
 
     def _get_data(self, year: int, dataTypeVal: int) -> None:
 
