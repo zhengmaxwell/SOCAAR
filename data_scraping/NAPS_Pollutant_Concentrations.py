@@ -96,13 +96,13 @@ class NAPS_Pollutant_Concentrations():
                 if naps_id not in seen_naps_ids:
                     if naps_id not in self._naps_ids:
                         command = f"""
-                            SELECT id from {NAPS_Pollutant_Concentrations.NAPS_STATIONS_TABLE} WHERE naps_id = {naps_id}
+                            SELECT id from {Tables.NAPS_STATIONS} WHERE naps_id = {naps_id}
                         """
                         self._naps_ids[naps_id] = self._psql.command(command, 'r')[0][0]
 
                     entryExists = False
                     command = f"""
-                        SELECT COUNT(*) FROM {NAPS_Pollutant_Concentrations.CONTINOUS_TABLE}
+                        SELECT COUNT(*) FROM {Tables.NAPS_CONTINUOUS}
                         WHERE naps_station = {self._naps_ids[naps_id]} AND year = {year} AND month = {month} AND day = {day}
                     """
                     entryExists = bool(self._psql.command(command, 'r')[0][0])
@@ -112,7 +112,7 @@ class NAPS_Pollutant_Concentrations():
                 if not entryExists:
                     for hour in range(24):
                         command = f"""
-                            INSERT INTO {NAPS_Pollutant_Concentrations.CONTINOUS_TABLE} (year, month, day, hour, naps_station, {pollutant})
+                            INSERT INTO {Tables.NAPS_CONTINUOUS} (year, month, day, hour, naps_station, {pollutant})
                             VALUES ({year}, {month}, {day}, {hour}, {self._naps_ids[naps_id]}, {float(line[hour])})
                         """
                         self._psql.command(command, 'w')
@@ -121,7 +121,7 @@ class NAPS_Pollutant_Concentrations():
                 else:
                     for hour in range(24):
                         command = f"""
-                            UPDATE {NAPS_Pollutant_Concentrations.CONTINOUS_TABLE} SET {pollutant} = {float(line[hour])}
+                            UPDATE {Tables.NAPS_CONTINUOUS} SET {pollutant} = {float(line[hour])}
                             WHERE year = {year} AND month = {month} AND day = {day} AND hour = {hour} AND naps_station = {self._naps_ids[naps_id]}
                         """
                         self._psql.command(command, 'w')
@@ -171,7 +171,7 @@ class NAPS_Pollutant_Concentrations():
     def _get_most_recent_year(self) -> Union[int, None]:
 
         cmd = f"""
-            SELECT year FROM {NAPS_Pollutant_Concentrations.CONTINOUS_TABLE} ORDER BY year DESC LIMIT 1 
+            SELECT year FROM {Tables.NAPS_CONTINUOUS} ORDER BY year DESC LIMIT 1 
         """
         year = self._psql.command(cmd, 'r')
 
