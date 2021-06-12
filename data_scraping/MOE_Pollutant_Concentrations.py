@@ -36,19 +36,17 @@ class MOE_Pollutant_Concentrations():
 
         for city in data:
             
-            command = f"SELECT id FROM moe_stations WHERE name = %(city)s"
-            str_params = {"city": city}
-            moe_station_id = self._psql.command(command, 'r', str_params)[0][0]
+            moe_station_id = Tables.get_moe_station(city)
 
             command = f"""
-                INSERT INTO {MOE_Pollutant_Concentrations.TABLE} (year, month, day, hour, moe_station, o3, pm2_5, no2, so2, co) 
+                INSERT INTO {Tables.MOE} (year, month, day, hour, moe_station, o3, pm2_5, no2, so2, co) 
                 VALUES ({year}, {month}, {day}, {hour}, {moe_station_id}, {data[city]["O3"]}, {data[city]["PM2.5"]}, {data[city]["NO2"]}, {data[city]["SO2"]}, {data[city]["CO"]})
             """
             self._psql.command(command, 'w')
 
     def _get_valid_time_range(self) -> List[datetime]:
         
-        command = f"SELECT * FROM {MOE_Pollutant_Concentrations.TABLE} ORDER BY year DESC, month DESC, day DESC, hour DESC LIMIT 1"
+        command = f"SELECT * FROM {Tables.MOE} ORDER BY year DESC, month DESC, day DESC, hour DESC LIMIT 1"
         row = self._psql.command(command, 'r')
         most_recent = datetime(row[0][2], row[0][3], row[0][4], row[0][5]) if row else datetime.now() - timedelta(hours=1) # returns current datetime if no entries yet
         

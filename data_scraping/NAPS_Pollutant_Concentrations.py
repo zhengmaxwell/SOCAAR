@@ -20,7 +20,6 @@ class NAPS_Pollutant_Concentrations():
     def __init__(self, hostname, database, user, password) -> None:
         
         self._psql = Postgres(hostname, database, user, password)
-        self._naps_ids = {} # maps naps_id to naps_stations id
 
         self._create_tables()
 
@@ -96,16 +95,11 @@ class NAPS_Pollutant_Concentrations():
                 # assumes if an entry exists for Jan 1 of the year for each distinct naps_id then an entry will exist 
                 # for all remaining days of the year for that naps_id
                 if naps_id not in seen_naps_ids:
-                    if naps_id not in self._naps_ids:
-                        command = f"""
-                            SELECT id from {Tables.NAPS_STATIONS} WHERE naps_id = {naps_id}
-                        """
-                        self._naps_ids[naps_id] = self._psql.command(command, 'r')[0][0]
-
+                    naps_station_id = Tables.get_naps_station(naps_id)
                     entryExists = False
                     command = f"""
                         SELECT COUNT(*) FROM {Tables.NAPS_CONTINUOUS}
-                        WHERE naps_station = {self._naps_ids[naps_id]} AND year = {year} AND month = {month} AND day = {day}
+                        WHERE naps_station = {naps_station_id} AND year = {year} AND month = {month} AND day = {day}
                     """
                     entryExists = bool(self._psql.command(command, 'r')[0][0])
                     seen_naps_ids.append(naps_id)
@@ -115,7 +109,7 @@ class NAPS_Pollutant_Concentrations():
                     for hour in range(24):
                         command = f"""
                             INSERT INTO {Tables.NAPS_CONTINUOUS} (year, month, day, hour, naps_station, {pollutant})
-                            VALUES ({year}, {month}, {day}, {hour}, {self._naps_ids[naps_id]}, {float(line[hour])})
+                            VALUES ({year}, {month}, {day}, {hour}, {naps_station_id}, {float(line[hour])})
                         """
                         self._psql.command(command, 'w')
 
@@ -124,7 +118,7 @@ class NAPS_Pollutant_Concentrations():
                     for hour in range(24):
                         command = f"""
                             UPDATE {Tables.NAPS_CONTINUOUS} SET {pollutant} = {float(line[hour])}
-                            WHERE year = {year} AND month = {month} AND day = {day} AND hour = {hour} AND naps_station = {self._naps_ids[naps_id]}
+                            WHERE year = {year} AND month = {month} AND day = {day} AND hour = {hour} AND naps_station = {naps_station_id}
                         """
                         self._psql.command(command, 'w')
     

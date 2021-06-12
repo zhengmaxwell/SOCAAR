@@ -1,7 +1,6 @@
 from Postgres import Postgres
 import os
 import json
-from typing import Union
 
 
 
@@ -20,7 +19,18 @@ class Tables:
     NAPS_OBSERVATION_TYPES = "naps_observation_types"
     NAPS_MEDIUMS = "naps_mediums"
     NAPS_SPECIATION_SAMPLER_CARTRIDGES = "naps_speciation_sampler_cartridges"
+    NAPS_INTEGRATED_CARBONYLS_COMPOUNDS = "naps_integrated_carbonyls_compounds"
 
+    # name: id
+    seen_moe_stations = {}
+    seen_naps_stations = {}
+    seen_naps_validation_codes = {}
+    seen_naps_sample_types = {}
+    seen_naps_analytical_instruments = {}
+    seen_naps_observation_types = {}
+    seen_naps_mediums = {}
+    seen_naps_speciation_sampler_cartridges = {}
+    
 
     @classmethod
     def connect(cls, psql: Postgres) -> None:
@@ -81,6 +91,94 @@ class Tables:
                 )
             """
             Tables.psql.command(command, 'w')
+
+    # given a value will return the primary key id from the respective metadata table
+
+    @classmethod
+    def get_moe_station(cls, station: str) -> int:
+
+        if station not in cls.seen_moe_stations:
+            command = f"SELECT id FROM {cls.MOE_STATIONS} WHERE name = %(city)s"
+            str_params = {"city": station}
+            cls.seen_moe_stations[station] = cls.psql.command(command, 'r', str_params)[0][0]
+
+        return cls.seen_moe_stations[station]
+
+
+    @classmethod
+    def get_naps_station(cls, station: int) -> int:
+
+        if station not in cls.seen_naps_stations:
+            command = f"SELECT id FROM {cls.NAPS_STATIONS} WHERE naps_id = {station}"
+            cls.seen_naps_stations[station] = cls.psql.command(command, 'r')[0][0]
+
+        return cls.seen_naps_stations[station]
+
+
+    @classmethod
+    def get_naps_validation_code(cls, validation_code: str) -> int:
+
+        if validation_code not in cls.seen_validation_codes:
+            command = f"SELECT id FROM {cls.NAPS_VALIDATION_CODES} WHERE name = %(validation_code)s"
+            str_params = {"validation_code": validation_code}
+            cls.seen_naps_validation_codes[validation_code] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_validation_codes[validation_code]
+
+    
+    @classmethod
+    def get_naps_sample_type(cls, sample_type: str) -> int:
+
+        if sample_type not in cls.seen_naps_sample_types:
+            command = f"SELECT id FROM {cls.NAPS_SAMPLE_TYPES} WHERE name = %(sample_type)s"
+            str_params = {"sample_type": sample_type}
+            cls.seen_naps_sample_types[sample_type] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_sample_types[sample_type]
+
+    
+    @classmethod
+    def get_naps_analytical_instrument(cls, analytical_instrument: str) -> int:
+
+        if analytical_instrument not in cls.seen_naps_analytical_instruments:
+            command = f"SELECT id FROM {cls.NAPS_ANALYTICAL_INSTRUMENTS} WHERE name = %(analytical_instrument)s"
+            str_params = {"analytical_instrument": analytical_instrument}
+            cls.seen_naps_analytical_instruments[analytical_instrument] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_analytical_instruments[analytical_instrument]
+
+
+    @classmethod
+    def get_naps_observation_type(cls, observation_type) -> int:
+
+        if observation_type not in cls.seen_naps_observation_types:
+            command = f"SELECT id FROM {cls.NAPS_OBSERVATION_TYPES} WHERE name = %(observation_type)s"
+            str_params = {"observation_type": observation_type}
+            cls.seen_naps_observation_types[observation_type] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_observation_types[observation_type]
+
+
+    @classmethod
+    def get_naps_medium(cls, medium: str) -> int:
+
+        if medium not in cls.seen_naps_mediums:
+            command = f"SELECT id FROM {cls.NAPS_MEDIUMS} WHERE name = %(medium)s"
+            str_params = {"medium": medium}
+            cls.seen_naps_mediums[medium] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_mediums[medium]
+
+
+    @classmethod
+    def get_naps_speciation_sampler_cartridge(cls, speciation_sampler_cartridge: str) -> int:
+
+        if speciation_sampler_cartridge not in cls.seen_naps_speciation_sampler_cartridges:
+            command = f"SELECT id FROM {cls.NAPS_SPECIATION_SAMPLER_CARTRIDGES} WHERE name = %(speciation_sampler_cartridge)s"
+            str_params = {"speciation_sampler_cartridge": speciation_sampler_cartridge}
+            cls.seen_naps_speciation_sampler_cartridges[speciation_sampler_cartridge] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_speciation_sampler_cartridges[speciation_sampler_cartridge]
 
 
     @staticmethod
@@ -283,7 +381,6 @@ class Tables:
                 str_params = {"name": row["Speciation Sampler Cartridge"], "description": row["Description"]}
                 Tables.psql.command(command, 'w', str_params=str_params)
 
-   
 
     @staticmethod
     def _create_naps_metadata_tables() -> None:
