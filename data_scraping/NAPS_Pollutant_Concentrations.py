@@ -6,8 +6,8 @@ import zipfile
 import shutil
 from bs4 import BeautifulSoup
 import os
-import csv
 from datetime import datetime
+import pandas as pd
 from typing import Union, List, Dict
 import sys # TODO remove maybe
 
@@ -16,6 +16,7 @@ import sys # TODO remove maybe
 class NAPS_Pollutant_Concentrations():
 
     FIRST_YEAR = 1990
+    LAST_YEAR = datetime.now().year - 1 # TODO: check this range
     
     def __init__(self, hostname, database, user, password) -> None:
         
@@ -26,21 +27,33 @@ class NAPS_Pollutant_Concentrations():
 
     def update_data(self) -> None:
 
-        for year in self._get_valid_year_range():
-            self._get_data(year, 0) # continous data
-            self._get_data(year, 1) # integrated data
+        self._update_continuous_data()
+        self._update_integrated_data()
 
+
+    def _update_continuous_data(self) -> None:
+
+        # starts from first year
+
+        for year in self._get_valid_year_range():
+            self._get_data(year, 0) # continuous data
+
+    def _update_integrated_data(self) -> None:
+
+        # starts last year
+
+        for year in self._get_valid_year_range()[::-1]:
+            self._get_data(year, 1)
 
     def _create_tables(self) -> None:
 
         Tables.connect(self._psql)
-        Tables.test()
-        #Tables.create_naps_continuous()
+        Tables.create_naps_continuous()
 
     def _get_data(self, year: int, dataTypeVal: int) -> None:
 
         # dataTypeVal = 1 -> IntegratedData
-        # dataTypeVal = 0 -> ContinousData
+        # dataTypeVal = 0 -> continuousData
 
         column_order = {} # {column: index}
 
@@ -73,14 +86,14 @@ class NAPS_Pollutant_Concentrations():
                     zip_dir = self.__download_file(file_url, filepath)
 
                     if dataTypeVal:
-                        data = self._get_integrated_data(filepath)
+                        data = self._get_integrated_data(zip_dir)
                         self._insert_integrated_data(data)
                     else:
-                        data = self._get_continous_data(filepath) 
-                        self._insert_continous_data(data)
+                        data = self._get_continuous_data(filepath) 
+                        self._insert_continuous_data(data)
                     self.__delete_files(filepath, zip_dir)
 
-    def _insert_continous_data(self, data: List[Dict[str, str]]) -> None:
+    def _insert_continuous_data(self, data: List[Dict[str, str]]) -> None:
 
             pollutant = data[0]["Pollutant"] # should only have one pollutant per csvfile
             seen_naps_ids = []
@@ -122,45 +135,42 @@ class NAPS_Pollutant_Concentrations():
                         """
                         self._psql.command(command, 'w')
     
-    def _get_continous_data(self, filepath: str) -> List[Dict[str, str]]:
+    def _get_continuous_data(self, filepath: str) -> List[Dict[str, str]]:
         
         column_order = {}
-        columns_ordered = False
         total_data = []
         data_len = 31
 
-        with open(filepath, 'r', encoding="utf-8", errors="ignore") as csv_file: # ignores non utf-8 encoded data
-            csv_reader = csv.reader(csv_file)
-
-            for line in csv_reader:
-                if len(line) == data_len: # only use relevant rows
-                    if not columns_ordered: # first row is column headers
-                        for i in range(data_len):
-                            if i in range(7, 31): # remove 'H0' from hour TODO: make the range dynamic
-                                column_order[i] = int(line[i].split("//")[0].replace('H', '').replace('24', '0')) # TODO: should H24 be midnight
-                            else:
-                                column_order[i] = line[i].split("//")[0]
-                        columns_ordered = True
-
-                    else: # data starts
-                        data = {}
-                        for i in range(data_len):
-                            data[column_order[i]] = line[i]
-                        total_data.append(data)
+        df = pd.read_csv(filepath, sep='\n', error_bad_lines=False)
+        for row in range(len(df)):
+            line = df.loc[row][0].split(',')
+            if len(line) == data_len:
+                if not column_order: # first row is column headers
+                    for i in range(data_len):
+                        if len(line[i].split("//")[0]) == 3 and line[i].split("//")[0][0] == 'H': # remove "H0" from hour
+                            column_order[i] = int(line[i].split("//")[0].replace('H', '').replace('24', '0')) # TODO: is H24 midnight?
+                        else:
+                            column_order[i] = line[i].split("//")[0]
+                
+                else:
+                    data = {}
+                    for i in range(data_len):
+                        data[column_order[i]] = line[i]
+                    total_data.append(data)
 
         return total_data
 
     def _insert_integrated_data(self, data: List[Dict[str, str]]) -> None:
         pass
 
-    def _get_integrated_data(self, filepath: str) -> List[Dict[str, str]]:
+    def _get_integrated_data(self, zip_dir: str) -> List[Dict[str, str]]:
         pass
-
+        
     def _get_valid_year_range(self) -> List[int]:
 
         # changes const value instead of function output in case it returns None
         start_year = self._get_most_recent_year() or NAPS_Pollutant_Concentrations.FIRST_YEAR-1 
-        year_range = [year for year in range(start_year+1, datetime.now().year)] # up to last year
+        year_range = [year for year in range(start_year+1, NAPS_Pollutant_Concentrations.LAST_YEAR)]
 
         return year_range
         
