@@ -6,8 +6,9 @@ import zipfile
 import shutil
 from bs4 import BeautifulSoup
 import os
-from datetime import datetime
+from datetime import date, datetime
 import pandas as pd
+from openpyxl import load_workbook
 from typing import Union, List, Dict
 import sys # TODO remove maybe
 
@@ -49,6 +50,7 @@ class NAPS_Pollutant_Concentrations():
 
         Tables.connect(self._psql)
         Tables.create_naps_continuous()
+        Tables.create_naps_integrated_carbonyls()
 
     def _get_data(self, year: int, dataTypeVal: int) -> None:
 
@@ -161,11 +163,61 @@ class NAPS_Pollutant_Concentrations():
         return total_data
 
     def _insert_integrated_data(self, data: List[Dict[str, str]]) -> None:
-        pass
+        
+        # Carbonyls
+        for line in data:
+            naps_station_id = Tables.get_naps_station(int(line["NAPS ID"]))
+            sample_type_id = Tables.get_naps_sample_type(line["Sampling Type"])
+            year, month, day = [int(d) for d in line["Sampling Date"].split('-')]
+            sampling_date = str(date(year, month, day))
+
+            for c in Tables.get_all_naps_integrated_carbonyls_compounds():
+                compound = c[0]
+                compound_id = Tables.get_naps_integrated_carbonyls_compound(compound)
+                density = "NULL" if line[compound] is None else float(line[compound])
+                density_mdl = "NULL" if line[f"{compound}-MDL"] is None else float(line[f"{compound}-MDL"])
+                vflag = line[f"{compound}-VFlag"] or "NULL"
+                vflag_id = Tables.get_naps_validation_code(vflag)
+
+                command = f"""
+                    INSERT INTO {Tables.NAPS_INTEGRATED_CARBONYLYS} (sampling_date, naps_station, sample_type, compound, density, density_mdl, vflag)
+                    VALUES (%(sampling_date)s, {naps_station_id}, {sample_type_id}, {compound_id}, {density}, {density_mdl}, {vflag_id})
+                """
+                str_params = {"sampling_date": sampling_date}
+                self._psql.command(command, 'w', str_params=str_params)
 
     def _get_integrated_data(self, zip_dir: str) -> List[Dict[str, str]]:
-        pass
-        
+    
+        # Carbonyls
+        total_data = []
+        for f in os.listdir(zip_dir):
+            if f.split('.')[-1] == "xlsx" and f.split('.')[0].split('_')[-1] == "EN":
+                naps_id = f.split('.')[0].split('_')[0].replace('S', '')
+                xlsx_filepath = f"{zip_dir}/{f}"
+                wb = load_workbook(xlsx_filepath)
+                sheet = wb["Carbonyls"]
+                
+                column_order = {}
+                data_len = None
+                header_found = False
+
+                for row in range(1, sheet.max_row+1):
+                    line = ','.join([str(cell.value) for cell in sheet[row]]).strip(",None").split(',') # strip Nonetypes from end of list
+                    if header_found or (line[0] and line.count("None") == 0): # get relevant rows
+                        if not column_order: # first row is column headers
+                            data_len = len(line)
+                            header_found = True
+                            for i in range(data_len):
+                                column_order[i] = sheet[row][i].value
+
+                        else:
+                            data = {}
+                            for i in range(data_len):
+                                data[column_order[i]] = sheet[row][i].value
+                            total_data.append(data)
+                            
+        return total_data
+
     def _get_valid_year_range(self) -> List[int]:
 
         # changes const value instead of function output in case it returns None

@@ -1,6 +1,7 @@
 from Postgres import Postgres
 import os
 import json
+from typing import List
 
 
 
@@ -30,6 +31,7 @@ class Tables:
     seen_naps_observation_types = {}
     seen_naps_mediums = {}
     seen_naps_speciation_sampler_cartridges = {}
+    seen_naps_integrated_carbonyls_compounds = {}
     
 
     @classmethod
@@ -58,7 +60,7 @@ class Tables:
                     no2 FLOAT,
                     so2 FLOAT,
                     co FLOAT,
-                    FOREIGN KEY(moe_station) REFERENCES moe_stations(id)
+                    FOREIGN KEY(moe_station) REFERENCES {Tables.MOE_STATIONS}(id)
                 )
             """
             Tables.psql.command(command, 'w')
@@ -87,10 +89,37 @@ class Tables:
                     pm10 FLOAT,
                     pm25 FLOAT,
                     so2 FLOAT,
-                    FOREIGN KEY(naps_station) REFERENCES naps_stations(id)
+                    FOREIGN KEY(naps_station) REFERENCES {Tables.NAPS_STATIONS}(id)
                 )
             """
             Tables.psql.command(command, 'w')
+
+    @staticmethod
+    def create_naps_integrated_carbonyls() -> None:
+
+        Tables._create_naps_stations()
+        Tables._create_naps_metadata_tables()
+
+        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_CARBONYLYS):
+            command = f"""
+                CREATE TABLE {Tables.NAPS_INTEGRATED_CARBONYLYS} (
+                    id SERIAL PRIMARY KEY,
+                    added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                    sampling_date DATE NOT NULL,
+                    naps_station INTEGER NOT NULL,
+                    sample_type INTEGER,
+                    compound INTEGER,
+                    density FLOAT,
+                    density_mdl FLOAT,
+                    vflag INTEGER NOT NULL,
+                    FOREIGN KEY(naps_station) REFERENCES {Tables.NAPS_STATIONS}(id),
+                    FOREIGN KEY(sample_type) REFERENCES {Tables.NAPS_SAMPLE_TYPES}(id),
+                    FOREIGN KEY(compound) REFERENCES {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS}(id),
+                    FOREIGN KEY(vflag) REFERENCES {Tables.NAPS_VALIDATION_CODES}(id)
+                )
+            """
+            Tables.psql.command(command, 'w')
+
 
     # given a value will return the primary key id from the respective metadata table
 
@@ -118,12 +147,17 @@ class Tables:
     @classmethod
     def get_naps_validation_code(cls, validation_code: str) -> int:
 
-        if validation_code not in cls.seen_validation_codes:
-            command = f"SELECT id FROM {cls.NAPS_VALIDATION_CODES} WHERE name = %(validation_code)s"
-            str_params = {"validation_code": validation_code}
-            cls.seen_naps_validation_codes[validation_code] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+            if validation_code not in cls.seen_naps_validation_codes:
+                if validation_code == "NULL":
+                    command = f"SELECT id FROM {cls.NAPS_VALIDATION_CODES} WHERE name is NULL"
+                    cls.seen_naps_validation_codes[validation_code] = cls.psql.command(command, 'r')[0][0]
 
-        return cls.seen_naps_validation_codes[validation_code]
+                else:
+                    command = f"SELECT id FROM {cls.NAPS_VALIDATION_CODES} WHERE name = %(validation_code)s"
+                    str_params = {"validation_code": validation_code}
+                    cls.seen_naps_validation_codes[validation_code] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+                
+            return cls.seen_naps_validation_codes[validation_code]
 
     
     @classmethod
@@ -179,6 +213,24 @@ class Tables:
             cls.seen_naps_speciation_sampler_cartridges[speciation_sampler_cartridge] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
 
         return cls.seen_naps_speciation_sampler_cartridges[speciation_sampler_cartridge]
+
+    
+    @classmethod
+    def get_naps_integrated_carbonyls_compound(cls, compound: str) -> int:
+
+        if compound not in cls.seen_naps_integrated_carbonyls_compounds:
+            command = f"SELECT id from {cls.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} WHERE name = %(compound)s"
+            str_params = {"compound": compound}
+            cls.seen_naps_integrated_carbonyls_compounds[compound] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_integrated_carbonyls_compounds[compound]
+
+
+    @staticmethod
+    def get_all_naps_integrated_carbonyls_compounds() -> List[str]:
+
+        command = f"SELECT name from {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS}"
+        return Tables.psql.command(command, 'r')
 
 
     @staticmethod
@@ -381,6 +433,38 @@ class Tables:
                 str_params = {"name": row["Speciation Sampler Cartridge"], "description": row["Description"]}
                 Tables.psql.command(command, 'w', str_params=str_params)
 
+    @staticmethod
+    def _create_naps_integrated_carbonyls_compounds() -> None:
+
+        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS):
+            command = f"""
+                CREATE TABLE {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR NOT NULL,
+                    medium INTEGER,
+                    observation_type INTEGER,
+                    analytical_instrument INTEGER,
+                    FOREIGN KEY(medium) REFERENCES {Tables.NAPS_MEDIUMS}(id),
+                    FOREIGN KEY(observation_type) REFERENCES {Tables.NAPS_OBSERVATION_TYPES}(id),
+                    FOREIGN KEY(analytical_instrument) REFERENCES {Tables.NAPS_ANALYTICAL_INSTRUMENTS}(id)
+                )
+            """
+            Tables.psql.command(command, 'w')
+
+            with open(f"{os.path.dirname(__file__)}/naps_data/carbonyls_compounds.json", 'r') as carbonyls_compounds_file:
+                data = json.loads(carbonyls_compounds_file.read())
+
+            for row in data:
+                medium = Tables.get_naps_medium(row["Medium"])
+                observation_type = Tables.get_naps_observation_type(row["Observation Type"])
+                analytical_instrument = Tables.get_naps_analytical_instrument(row["Analytical Instrument"])
+
+                command = f"""
+                    INSERT INTO {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} (name, medium, observation_type, analytical_instrument)
+                    VALUES (%(name)s, {medium}, {observation_type}, {analytical_instrument})
+                """
+                str_params = {"name": row["Compound"]}
+                Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
     def _create_naps_metadata_tables() -> None:
@@ -391,3 +475,4 @@ class Tables:
         Tables._create_naps_observation_types()
         Tables._create_naps_mediums()
         Tables._create_naps_speciation_sampler_cartridges()
+        Tables._create_naps_integrated_carbonyls_compounds()
