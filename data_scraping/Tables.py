@@ -177,7 +177,7 @@ class Tables:
     def get_naps_pollutants(cls, pollutant: str) -> int:
 
         if pollutant not in cls.seen_naps_pollutants:
-            command = f"SELECT id FROM {cls.NAPS_POLLUTANTS} WHERE name = % (pollutant)s"
+            command = f"SELECT id FROM {cls.NAPS_POLLUTANTS} WHERE name = %(pollutant)s"
             str_params = {"pollutant": pollutant}
             cls.seen_naps_pollutants[pollutant] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
 
