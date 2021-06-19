@@ -2,6 +2,7 @@ from Postgres import Postgres
 from Views import Views
 import os
 import json
+import unicodedata
 from typing import List
 
 
@@ -321,7 +322,7 @@ class Tables:
             """
             Tables.psql.command(command, 'w')
 
-            with open(f"{os.path.dirname(__file__)}/station_data/naps.json", 'r') as naps_file:
+            with open(f"{os.path.dirname(__file__)}/station_data/naps.json", 'r', encoding="latin-1") as naps_file:
                 data = json.loads(naps_file.read())
 
             for row in data:
@@ -329,7 +330,7 @@ class Tables:
                     INSERT INTO {Tables.NAPS_STATIONS} (naps_id, name, latitude, longitude)
                     VALUES ({row["NAPS_ID"]}, %(name)s, {row["Latitude"] or "Null"}, {row["Longitude"] or "Null"})
                 """
-                str_params = {"name": row["Station_Name"]}
+                str_params = {"name": unicodedata.normalize("NFKD", row["Station_Name"]).encode("ASCII", "ignore").decode("utf-8")} # escape french chars
                 Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
