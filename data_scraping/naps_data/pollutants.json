@@ -1,0 +1,26 @@
+[
+    {
+        "Pollutant": "O3"
+    },
+    {
+        "Pollutant": "PM25"
+    },
+    {
+        "Pollutant": "NO2"
+    },
+    {
+        "Pollutant": "SO2"
+    },
+    {
+        "Pollutant": "CO"
+    },
+    {
+        "Pollutant": "NO"
+    },
+    {
+        "Pollutant": "NOX"
+    },
+    {
+        "Pollutant": "PM10"
+    }
+]

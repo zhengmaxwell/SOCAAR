@@ -1,4 +1,5 @@
 from Postgres import Postgres
+from Views import Views
 import os
 import json
 from typing import List
@@ -15,6 +16,7 @@ class Tables:
     NAPS_INTEGRATED_VOC = "naps_integrated_voc_pollutant_concentrations"
     MOE_STATIONS = "moe_stations"
     NAPS_STATIONS = "naps_stations"
+    NAPS_POLLUTANTS = "naps_pollutants"
     NAPS_VALIDATION_CODES = "naps_validation_codes"
     NAPS_SAMPLE_TYPES = "naps_sample_types"
     NAPS_ANALYTICAL_INSTRUMENTS = "naps_analytical_instruments"
@@ -27,6 +29,7 @@ class Tables:
     # name: id
     seen_moe_stations = {}
     seen_naps_stations = {}
+    seen_naps_pollutants = {}
     seen_naps_validation_codes = {}
     seen_naps_sample_types = {}
     seen_naps_analytical_instruments = {}
@@ -72,6 +75,7 @@ class Tables:
     def create_naps_continuous() -> None:
 
         Tables._create_naps_stations()
+        Tables._create_naps_pollutants()
 
         if not Tables.psql.does_table_exist(Tables.NAPS_CONTINUOUS):
             command = f"""
@@ -83,18 +87,14 @@ class Tables:
                     day INTEGER NOT NULL CHECK (day >= 1 and day <= 31),
                     hour INTEGER NOT NULL CHECK (hour >=0 and hour <= 23),
                     naps_station INTEGER NOT NULL,
-                    co FLOAT,
-                    no FLOAT,
-                    no2 FLOAT,
-                    nox FLOAT,
-                    o3 FLOAT,
-                    pm10 FLOAT,
-                    pm25 FLOAT,
-                    so2 FLOAT,
-                    FOREIGN KEY(naps_station) REFERENCES {Tables.NAPS_STATIONS}(id)
+                    pollutant INTEGER NOT NULL,
+                    density FLOAT,
+                    FOREIGN KEY(naps_station) REFERENCES {Tables.NAPS_STATIONS}(id),
+                    FOREIGN KEY(pollutant) REFERENCES {Tables.NAPS_POLLUTANTS}(id)
                 )
             """
             Tables.psql.command(command, 'w')
+            Views.create_naps_continuous(Tables.psql)
 
     @staticmethod
     def create_naps_integrated_carbonyls() -> None:
@@ -171,6 +171,17 @@ class Tables:
             cls.seen_naps_stations[station] = cls.psql.command(command, 'r')[0][0]
 
         return cls.seen_naps_stations[station]
+
+
+    @classmethod
+    def get_naps_pollutants(cls, pollutant: str) -> int:
+
+        if pollutant not in cls.seen_naps_pollutants:
+            command = f"SELECT id FROM {cls.NAPS_POLLUTANTS} WHERE name = % (pollutant)s"
+            str_params = {"pollutant": pollutant}
+            cls.seen_naps_pollutants[pollutant] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+
+        return cls.seen_naps_pollutants[pollutant]
 
 
     @classmethod
@@ -319,6 +330,29 @@ class Tables:
                     VALUES ({row["NAPS_ID"]}, %(name)s, {row["Latitude"] or "Null"}, {row["Longitude"] or "Null"})
                 """
                 str_params = {"name": row["Station_Name"]}
+                Tables.psql.command(command, 'w', str_params=str_params)
+
+    @staticmethod
+    def _create_naps_pollutants() -> None:
+
+        if not Tables.psql.does_table_exist(Tables.NAPS_POLLUTANTS):
+            command = f"""
+                CREATE TABLE {Tables.NAPS_POLLUTANTS} (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR
+                )
+            """
+            Tables.psql.command(command, 'w')
+
+            with open(f"{os.path.dirname(__file__)}/naps_data/pollutants.json", 'r') as pollutants_file:
+                data = json.loads(pollutants_file.read())
+
+            for row in data:
+                command = f"""
+                    INSERT INTO {Tables.NAPS_POLLUTANTS} (name)
+                    VALUES (%(name)s)
+                """
+                str_params = {"name": row["Pollutant"]}
                 Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod

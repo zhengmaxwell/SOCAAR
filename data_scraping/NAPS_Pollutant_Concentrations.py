@@ -98,44 +98,20 @@ class NAPS_Pollutant_Concentrations():
     def _insert_continuous_data(self, data: List[Dict[str, str]]) -> None:
 
             pollutant = data[0]["Pollutant"] # should only have one pollutant per csvfile
-            seen_naps_ids = []
-            entryExists = False
+            pollutant_id = Tables.get_naps_pollutants(pollutant)
             
             for line in data:
                 naps_id = line["NAPSID"]
+                naps_station_id = Tables.get_naps_station(naps_id)
                 date = line["Date"]
                 year, month, day = int(date[:4]), int(date[4:6]), int(date[6:])
-
-                # check if entry already exists
-                # assumes if an entry exists for Jan 1 of the year for each distinct naps_id then an entry will exist 
-                # for all remaining days of the year for that naps_id
-                if naps_id not in seen_naps_ids:
-                    naps_station_id = Tables.get_naps_station(naps_id)
-                    entryExists = False
+                
+                for hour in range(24):
                     command = f"""
-                        SELECT COUNT(*) FROM {Tables.NAPS_CONTINUOUS}
-                        WHERE naps_station = {naps_station_id} AND year = {year} AND month = {month} AND day = {day}
+                        INSERT INTO {Tables.NAPS_CONTINUOUS} (year, month, day, hour, naps_station, pollutant, density)
+                        VALUES ({year}, {month}, {day}, {hour}, {naps_station_id}, {pollutant_id}, {float(line[hour])})
                     """
-                    entryExists = bool(self._psql.command(command, 'r')[0][0])
-                    seen_naps_ids.append(naps_id)
-
-                # insert data
-                if not entryExists:
-                    for hour in range(24):
-                        command = f"""
-                            INSERT INTO {Tables.NAPS_CONTINUOUS} (year, month, day, hour, naps_station, {pollutant})
-                            VALUES ({year}, {month}, {day}, {hour}, {naps_station_id}, {float(line[hour])})
-                        """
-                        self._psql.command(command, 'w')
-
-                # update data
-                else:
-                    for hour in range(24):
-                        command = f"""
-                            UPDATE {Tables.NAPS_CONTINUOUS} SET {pollutant} = {float(line[hour])}
-                            WHERE year = {year} AND month = {month} AND day = {day} AND hour = {hour} AND naps_station = {naps_station_id}
-                        """
-                        self._psql.command(command, 'w')
+                    self._psql.command(command, 'w')
     
     def _get_continuous_data(self, filepath: str) -> List[Dict[str, str]]:
         
@@ -240,7 +216,9 @@ class NAPS_Pollutant_Concentrations():
         # if file is a zip file, will unzip contents to the same directory and return directory name
 
         r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        open(filepath, "wb").write(r.content)
+        
+        with open(filepath, "wb") as f:
+            f.write(r.content)
 
         if filepath.split('.')[-1] == "zip":
             return self.__unzip_file(filepath)
