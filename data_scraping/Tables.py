@@ -38,12 +38,14 @@ class Tables:
     seen_naps_mediums = {}
     seen_naps_speciation_sampler_cartridges = {}
     seen_naps_integrated_carbonyls_compounds = {}
+    seen_naps_integrated_voc_compounds = {}
     
 
     @classmethod
     def connect(cls, psql: Postgres) -> None:
 
         cls.psql = psql
+        Views.connect(psql)
 
 
     @staticmethod
@@ -95,7 +97,7 @@ class Tables:
                 )
             """
             Tables.psql.command(command, 'w')
-            Views.create_naps_continuous(Tables.psql)
+            Views.create_naps_continuous()
 
     @staticmethod
     def create_naps_integrated_carbonyls() -> None:
@@ -122,6 +124,7 @@ class Tables:
                 )
             """
             Tables.psql.command(command, 'w')
+            Views.create_naps_integrated_carbonyls()
 
     
     @staticmethod
@@ -144,7 +147,7 @@ class Tables:
                     vflag INTEGER NOT NULL,
                     FOREIGN KEY(naps_station) REFERENCES {Tables.NAPS_STATIONS}(id),
                     FOREIGN KEY(sample_type) REFERENCES {Tables.NAPS_SAMPLE_TYPES}(id),
-                    FOREIGN KEY(compound) REFERENCES {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS}(id),
+                    FOREIGN KEY(compound) REFERENCES {Tables.NAPS_INTEGRATED_VOC_COMPOUNDS}(id),
                     FOREIGN KEY(vflag) REFERENCES {Tables.NAPS_VALIDATION_CODES}(id)
                 )
             """
@@ -256,29 +259,62 @@ class Tables:
         return cls.seen_naps_speciation_sampler_cartridges[speciation_sampler_cartridge]
 
     
+    @staticmethod
+    def get_naps_integrated_all_pollutant_compounds(pollutant: str) -> List[str]:
+
+        if pollutant.upper() == "CARBONYLS":
+            table = Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS
+        elif pollutant.upper() == "VOC":
+            table = Tables.NAPS_INTEGRATED_VOC_COMPOUNDS
+
+        command = f"SELECT name FROM {table}"
+        return Tables.psql.command(command, 'r')
+
+    
     @classmethod
-    def get_naps_integrated_carbonyls_compound(cls, compound: str) -> int:
+    def get_naps_integrated_pollutant_compound(cls, pollutant: str, compound: str) -> int:
 
-        if compound not in cls.seen_naps_integrated_carbonyls_compounds:
-            command = f"SELECT id FROM {cls.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} WHERE name = %(compound)s"
-            str_params = {"compound": compound}
-            cls.seen_naps_integrated_carbonyls_compounds[compound] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
+        if pollutant.upper() == "CARBONYLS":
+            table = cls.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS
+            seen = cls.seen_naps_integrated_carbonyls_compounds
+        elif pollutant.upper() == "VOC":
+            table = Tables.NAPS_INTEGRATED_VOC_COMPOUNDS
+            seen = cls.seen_naps_integrated_voc_compounds
 
-        return cls.seen_naps_integrated_carbonyls_compounds[compound]
+        medium, observation_type, analytical_instrument = None, None, None
+        compound_name = compound.split("-metadata:")[0]
 
+        # expecting: "compound-metadata:{key:val}"
+        if "metadata" in compound:
+            metadata = compound.split("-metadata:")[1]
+            metadata = eval(metadata) # convert to dict
+            medium = None if "Medium" not in metadata else metadata["Medium"]
+            observation_type = None if "Observation Type" not in metadata else metadata["Observation Type"]
+            analytical_instrument = None if "Analytical Instrument" not in metadata else metadata["Analytical Instrument"]
 
-    @staticmethod
-    def get_all_naps_integrated_carbonyls_compounds() -> List[str]:
+        if compound_name not in seen:
+            command = f"""
+                SELECT compounds.id
+                FROM naps_integrated_voc_compounds compounds
+                INNER JOIN naps_mediums mediums
+                    ON mediums.id = compounds.medium
+                INNER JOIN naps_observation_types obs
+                    ON obs.id = compounds.observation_type
+                INNER JOIN naps_analytical_instruments ais
+                    ON ais.id = compounds.analytical_instrument
+                WHERE compounds.name = %(compound)s
+            """
+            if medium:
+                command += (" AND mediums.name = %(medium)s")
+            if observation_type:
+                command += (" AND obs.name = %(observation_type)s")
+            if analytical_instrument:
+                command += (" AND ais.name = %(analytical_instrument)s")
 
-        command = f"SELECT name FROM {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS}"
-        return Tables.psql.command(command, 'r')
+            str_params = {"compound": compound_name, "medium": medium, "observation_type": observation_type, "analytical_instrument": analytical_instrument}
+            seen[compound] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
 
-
-    @staticmethod
-    def get_all_integrated_voc_compounds() -> List[str]:
-
-        command = f"SELECT name FROM {Tables.NAPS_INTEGRATED_VOC_COMPOUNDS}"
-        return Tables.psql.command(command, 'r')
+        return seen[compound]
 
 
     @staticmethod

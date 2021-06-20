@@ -9,7 +9,7 @@ import os
 from datetime import date, datetime
 import pandas as pd
 from openpyxl import load_workbook
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Tuple
 import sys # TODO remove maybe
 
 
@@ -51,6 +51,7 @@ class NAPS_Pollutant_Concentrations():
         Tables.connect(self._psql)
         Tables.create_naps_continuous()
         Tables.create_naps_integrated_carbonyls()
+        Tables.create_naps_integrated_voc()
 
     def _get_data(self, year: int, dataTypeVal: int) -> None:
 
@@ -107,9 +108,10 @@ class NAPS_Pollutant_Concentrations():
                 year, month, day = int(date[:4]), int(date[4:6]), int(date[6:])
                 
                 for hour in range(24):
+                    density = "NULL" if line[hour] is None else float(line[hour])
                     command = f"""
                         INSERT INTO {Tables.NAPS_CONTINUOUS} (year, month, day, hour, naps_station, pollutant, density)
-                        VALUES ({year}, {month}, {day}, {hour}, {naps_station_id}, {pollutant_id}, {float(line[hour])})
+                        VALUES ({year}, {month}, {day}, {hour}, {naps_station_id}, {pollutant_id}, {density})
                     """
                     self._psql.command(command, 'w')
     
@@ -138,61 +140,112 @@ class NAPS_Pollutant_Concentrations():
 
         return total_data
 
-    def _insert_integrated_data(self, data: List[Dict[str, str]]) -> None:
+    def _insert_integrated_data(self, data: Tuple[str, List[Dict[str, str]]]) -> None:
+
+        pollutant, lines = data 
+
+        if pollutant.upper() == "CARBONYLS":
+            compounds = Tables.get_naps_integrated_all_pollutant_compounds(pollutant.upper())
+            table = Tables.NAPS_INTEGRATED_CARBONYLYS
+        elif pollutant.upper() == "VOC":
+            compounds = Tables.get_naps_integrated_all_pollutant_compounds(pollutant.upper())
+            table = Tables.NAPS_INTEGRATED_VOC
         
-        # Carbonyls
-        for line in data:
-            naps_station_id = Tables.get_naps_station(int(line["NAPS ID"]))
-            sample_type_id = Tables.get_naps_sample_type(line["Sampling Type"])
-            year, month, day = [int(d) for d in line["Sampling Date"].split('-')]
+        for line in lines:
+            naps_station_id = Tables.get_naps_station(int(line.pop("NAPS ID")))
+            sample_type_id = Tables.get_naps_sample_type(line.pop("Sample Type"))
+            year, month, day = [int(d) for d in line.pop("Sampling Date").split('-')]
             sampling_date = str(date(year, month, day))
 
-            for c in Tables.get_all_naps_integrated_carbonyls_compounds():
+            for c in compounds:
                 compound = c[0]
-                compound_id = Tables.get_naps_integrated_carbonyls_compound(compound)
-                density = "NULL" if line[compound] is None else float(line[compound])
-                density_mdl = "NULL" if line[f"{compound}-MDL"] is None else float(line[f"{compound}-MDL"])
-                vflag = line[f"{compound}-VFlag"] or "NULL"
-                vflag_id = Tables.get_naps_validation_code(vflag)
+                if compound in line.keys():
+                    compound_id = Tables.get_naps_integrated_pollutant_compound(pollutant.upper(), compound)
+                    density = "NULL" if line[compound] is None else float(line.pop(compound))
+                    density_mdl = "NULL" if line[f"{compound}-MDL"] is None else float(line.pop(f"{compound}-MDL"))
+                    vflag = line.pop(f"{compound}-VFlag") or "NULL"
+                    vflag_id = Tables.get_naps_validation_code(vflag)
 
                 command = f"""
-                    INSERT INTO {Tables.NAPS_INTEGRATED_CARBONYLYS} (sampling_date, naps_station, sample_type, compound, density, density_mdl, vflag)
+                    INSERT INTO {table} (sampling_date, naps_station, sample_type, compound, density, density_mdl, vflag)
                     VALUES (%(sampling_date)s, {naps_station_id}, {sample_type_id}, {compound_id}, {density}, {density_mdl}, {vflag_id})
                 """
                 str_params = {"sampling_date": sampling_date}
                 self._psql.command(command, 'w', str_params=str_params)
 
-    def _get_integrated_data(self, zip_dir: str) -> List[Dict[str, str]]:
-    
-        # Carbonyls
-        total_data = []
-        for f in os.listdir(zip_dir):
-            if f.split('.')[-1] == "xlsx" and f.split('.')[0].split('_')[-1] == "EN":
-                naps_id = f.split('.')[0].split('_')[0].replace('S', '')
-                xlsx_filepath = f"{zip_dir}/{f}"
-                wb = load_workbook(xlsx_filepath)
-                sheet = wb["Carbonyls"]
-                
-                column_order = {}
-                data_len = None
-                header_found = False
 
-                for row in range(1, sheet.max_row+1):
-                    line = ','.join([str(cell.value) for cell in sheet[row]]).strip(",None").split(',') # strip Nonetypes from end of list
-                    if header_found or (line[0] and line.count("None") == 0): # get relevant rows
-                        if not column_order: # first row is column headers
-                            data_len = len(line)
-                            header_found = True
-                            for i in range(data_len):
-                                column_order[i] = sheet[row][i].value
+            # remaining compounds are duplicates with different metadata
+            # TODO: try to combine this with above
+            for compound in line.keys():
+                if "MDL" not in compound and "VFlag" not in compound:
+                    compound_name, metadata = compound.split("-metadata:")
+                    compound_id = Tables.get_naps_integrated_pollutant_compound(pollutant.upper(), compound)
+                    density = "NULL" if line[compound] is None else float(line[compound])
+                    density_mdl_name = f"{compound_name}-MDL-metadata:{metadata}"
+                    density_mdl = "NULL" if line[density_mdl_name] is None else float(line[density_mdl_name])
+                    vflag_name = f"{compound_name}-VFlag-metadata:{metadata}"
+                    vflag = line[vflag_name] or "NULL"
+                    vflag_id = Tables.get_naps_validation_code(vflag)
 
+                    command = f"""
+                        INSERT INTO {table} (sampling_date, naps_station, sample_type, compound, density, density_mdl, vflag)
+                        VALUES (%(sampling_date)s, {naps_station_id}, {sample_type_id}, {compound_id}, {density}, {density_mdl}, {vflag_id})
+                    """
+                    str_params = {"sampling_date": sampling_date}
+                    self._psql.command(command, 'w', str_params=str_params)
+
+    def _get_integrated_data(self, zip_dir: str) -> Tuple[str, List[Dict[str, str]]]:
+
+        pollutant = zip_dir.split('\\')[-1].split('-')[0]
+        
+        if pollutant in ["CARBONYLS", "VOC"]:
+            total_data = []
+            for f in os.listdir(zip_dir):
+                if f.split('.')[-1] == "xlsx" and f.split('.')[0].split('_')[-1] == "EN":
+                    naps_id = f.split('.')[0].split('_')[0].replace('S', '')
+                    xlsx_filepath = f"{zip_dir}/{f}"
+                    print(xlsx_filepath)
+                    wb = load_workbook(xlsx_filepath)
+                    sheet = wb[pollutant]
+                    
+                    column_order = {} # col: name
+                    meta_data_headers = ["Medium", "Observation Type", "Analytical Instrument", "Speciation Sampler Cartridge"]
+                    meta_data_rows = {} # name: row
+                    data_len = None
+
+                    for row in range(1, sheet.max_row+1):
+                        print(row) # TODO: remove
+                        # find column headers
+                        if not column_order:
+                            # find metadata headers
+                            if sheet[row][0].value in meta_data_headers:
+                                meta_data_rows[sheet[row][0].value] = row
+                            # strip Nonetypes from end of list and replace "None" strings in cells with "N/A"
+                            # joining with '`' because ',' is included in some header strings
+                            line = '`'.join(["None" if not cell.value else str(cell.value.replace("None", "N/A")) if True else 0 for cell in sheet[row]]).strip("`None").split('`') 
+                            if line[0] and line.count("None") == 0:
+                                data_len = len(line) 
+                                i = 0
+                                while i < data_len:
+                                    # finding diplicate compound names with different metadata
+                                    if line.count(sheet[row][i].value) > 1:
+                                        meta_data = {}
+                                        for meta_data_name in meta_data_rows.keys(): # only use meta_data that was found
+                                                meta_data[meta_data_name] = sheet[meta_data_rows[meta_data_name]][i].value.replace('_', '/')
+                                        for j in range(3):
+                                            column_order[i+j] = f"{sheet[row][i+j].value}-metadata:{meta_data}"
+                                        i += 3
+                                    else:
+                                        column_order[i] = sheet[row][i].value.replace("Sampling Type", "Sample Type")
+                                        i += 1
+                                
                         else:
                             data = {}
                             for i in range(data_len):
                                 data[column_order[i]] = sheet[row][i].value
                             total_data.append(data)
-                            
-        return total_data
+                                
+                    return pollutant, total_data
 
     def _get_valid_year_range(self) -> List[int]:
 

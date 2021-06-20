@@ -4,12 +4,21 @@ from Postgres import Postgres
 
 class Views:
 
+    psql = None
+
 
     NAPS_CONTINUOUS = "naps_continuous_pollutant_concentrations_master"
+    NAPS_INTEGRATED_CARBONYLS = "naps_integrated_carbonyls_pollutant_concentrations_master"
+
+    
+    @classmethod
+    def connect(cls, psql: Postgres) -> None:
+
+        cls.psql = psql
 
 
     @staticmethod
-    def create_naps_continuous(psql: Postgres) -> None:
+    def create_naps_continuous() -> None:
 
         command = f"""
             CREATE OR REPLACE VIEW {Views.NAPS_CONTINUOUS} AS
@@ -19,14 +28,14 @@ class Views:
                         total.day,
                         total.hour,
                         total.naps_station,
-                        o3.density as o3,
-                        pm25.density as pm25,
-                        co.density as no2,
-                        so2.density as so2,
-                        no2.density as co,
-                        no.density as no,
-                        nox.density as nox,
-                        pm10.density as pm10
+                        o3.density AS o3,
+                        pm25.density AS pm25,
+                        co.density AS no2,
+                        so2.density AS so2,
+                        no2.density AS co,
+                        no.density AS no,
+                        nox.density AS nox,
+                        pm10.density AS pm10
                     FROM naps_continuous_pollutant_concentrations total
                     FULL OUTER JOIN (
                         SELECT * FROM naps_continuous_pollutant_concentrations 
@@ -93,4 +102,29 @@ class Views:
                         AND pm10.hour = total.hour 
                         AND pm10.naps_station = total.naps_station
         """
-        psql.command(command, 'w')
+        Views.psql.command(command, 'w')
+
+    
+    @staticmethod
+    def create_naps_integrated_carbonyls(psql: Postgres) -> None:
+
+        command = f"""
+            CREATE OR REPLACE VIEW {Views.NAPS_INTEGRATED_CARBONYLS} AS
+                SELECT 
+                    stations.name AS naps_station,
+                    sample_types.name AS sample_type,
+                    compounds.name AS compound,
+                    master.density,
+                    master.density_mdl,
+                    validation_codes.name AS vflag
+                FROM naps_integrated_carbonyls_pollutant_concentrations	master
+                INNER JOIN naps_stations stations
+                    ON stations.id = master.naps_station
+                INNER JOIN naps_sample_types sample_types
+                    ON sample_types.id = master.sample_type
+                INNER JOIN naps_integrated_carbonyls_compounds compounds
+                    ON compounds.id = master.compound
+                INNER JOIN naps_validation_codes validation_codes
+                    ON validation_codes.id = master.vflag
+        """
+        Views.psql.command(command, 'w')
