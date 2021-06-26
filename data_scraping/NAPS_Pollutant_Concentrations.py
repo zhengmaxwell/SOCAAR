@@ -19,6 +19,7 @@ class NAPS_Pollutant_Concentrations():
     FIRST_YEAR = 1990
     LAST_YEAR = datetime.now().year - 1 # TODO: check this range
     
+
     def __init__(self, hostname, database, user, password) -> None:
         
         self._psql = Postgres(hostname, database, user, password)
@@ -32,19 +33,21 @@ class NAPS_Pollutant_Concentrations():
         self._update_integrated_data()
 
 
-    def _update_continuous_data(self) -> None:
+    def _update_continuous_data(self, year: int=None) -> None:
 
-        # starts from first year
+        if year:
+            self._get_data(year, 0)
+        else:
+            for year in self._get_valid_year_range(): # starts from first year
+                self._get_data(year, 0)
 
-        for year in self._get_valid_year_range():
-            self._get_data(year, 0) # continuous data
+    def _update_integrated_data(self, year: int=None) -> None:
 
-    def _update_integrated_data(self) -> None:
-
-        # starts last year
-
-        for year in self._get_valid_year_range()[::-1]:
+        if year:
             self._get_data(year, 1)
+        else:
+            for year in self._get_valid_year_range()[::-1]: # starts last year and goes backwards
+                self._get_data(year, 1)
 
     def _create_tables(self) -> None:
 
@@ -108,12 +111,14 @@ class NAPS_Pollutant_Concentrations():
                 year, month, day = int(date[:4]), int(date[4:6]), int(date[6:])
                 
                 for hour in range(24):
+                    timestamp = str(datetime(year, month, day, hour))
                     density = "NULL" if line[hour] is None else float(line[hour])
                     command = f"""
-                        INSERT INTO {Tables.NAPS_CONTINUOUS} (year, month, day, hour, naps_station, pollutant, density)
-                        VALUES ({year}, {month}, {day}, {hour}, {naps_station_id}, {pollutant_id}, {density})
+                        INSERT INTO {Tables.NAPS_CONTINUOUS} (timestamp, naps_station, pollutant, density)
+                        VALUES (%(timestamp)s, {naps_station_id}, {pollutant_id}, {density})
                     """
-                    self._psql.command(command, 'w')
+                    str_params = {"timestamp": timestamp}
+                    self._psql.command(command, 'w', str_params=str_params)
     
     def _get_continuous_data(self, filepath: str) -> List[Dict[str, str]]:
         

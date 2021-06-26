@@ -85,10 +85,7 @@ class Tables:
                 CREATE TABLE {Tables.NAPS_CONTINUOUS} (
                     id SERIAL PRIMARY KEY,
                     added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                    year INTEGER NOT NULL CHECK (year <= DATE_PART('year', now())),
-                    month INTEGER NOT NULL CHECK (month >= 1 and month <= 12),
-                    day INTEGER NOT NULL CHECK (day >= 1 and day <= 31),
-                    hour INTEGER NOT NULL CHECK (hour >=0 and hour <= 23),
+                    timestamp TIMESTAMP NOT NULL,
                     naps_station INTEGER NOT NULL,
                     pollutant INTEGER NOT NULL,
                     density FLOAT,
