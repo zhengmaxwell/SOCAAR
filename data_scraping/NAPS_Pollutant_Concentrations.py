@@ -124,8 +124,8 @@ class NAPS_Pollutant_Concentrations():
         df = pd.read_csv(filepath, sep='\n', error_bad_lines=False)
         for row in range(len(df)):
             line = df.loc[row][0].split(',')
-            if len(line) == data_len:
-                if not column_order: # first row is column headers
+            if column_order or (len(line) == data_len and line.count('') == 0): # first row is column headers
+                if not column_order:
                     for i in range(data_len):
                         if len(line[i].split("//")[0]) == 3 and line[i].split("//")[0][0] == 'H': # remove "H0" from hour
                             column_order[i] = int(line[i].split("//")[0].replace('H', '').replace('24', '0')) # TODO: is H24 midnight?
