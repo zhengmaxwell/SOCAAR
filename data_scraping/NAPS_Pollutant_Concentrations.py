@@ -263,11 +263,11 @@ class NAPS_Pollutant_Concentrations():
     def _get_most_recent_year(self) -> Union[int, None]:
 
         cmd = f"""
-            SELECT year FROM {Tables.NAPS_CONTINUOUS} ORDER BY year DESC LIMIT 1 
+            SELECT timestamp FROM {Tables.NAPS_CONTINUOUS} ORDER BY timestamp DESC LIMIT 1 
         """
-        year = self._psql.command(cmd, 'r')
+        timestamp = self._psql.command(cmd, 'r')
 
-        return None if year == [] else year[0][0]
+        return None if timestamp == [] else timestamp[0][0].year
 
     def __download_file(self, url: str, filepath: str) -> Union[str, None]:
 
