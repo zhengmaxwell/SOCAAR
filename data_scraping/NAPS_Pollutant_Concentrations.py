@@ -271,13 +271,22 @@ class NAPS_Pollutant_Concentrations():
 
     def __download_file(self, url: str, filepath: str) -> Union[str, None]:
 
-        # if file is a zip file, will unzip contents to the same directory and return directory name
-
-        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        # for whatever reason, the NAPS data doesn't doesn't download properly
+        # tries multiple times to download until expected filesize matches downloaded size
+        # TODO: possible infinite while loop
+        download_size = -1
+        size = int(requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, stream=True).headers["Content-Length"])
         
-        with open(filepath, "wb") as f:
-            f.write(r.content)
-
+        while abs(download_size - size) > 1: # last byte of data isn't important I think ...
+            headers = {"User-Agent": "Mozilla/5.0", "Range": f"bytes={download_size+1}-{size}"}
+            with requests.get(url, headers=headers, stream=True, timeout=None) as r:
+                with open(filepath, "ab") as f:
+                    shutil.copyfileobj(r.raw, f, 1024)
+                    f.flush()
+                    os.fsync(f.fileno())
+            download_size = os.path.getsize(filepath)
+        
+        # if file is a zip file, will unzip contents to the same directory and return directory name
         if filepath.split('.')[-1] == "zip":
             return self.__unzip_file(filepath)
     
