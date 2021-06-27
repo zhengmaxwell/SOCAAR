@@ -9,6 +9,7 @@ import os
 from datetime import date, datetime
 import pandas as pd
 from openpyxl import load_workbook
+from tqdm import tqdm
 from typing import Union, List, Dict, Tuple
 import sys # TODO remove maybe
 
@@ -27,10 +28,10 @@ class NAPS_Pollutant_Concentrations():
         self._create_tables()
 
 
-    def update_data(self) -> None:
+    def update_data(self, year: int=None) -> None:
 
-        self._update_continuous_data()
-        self._update_integrated_data()
+        self._update_continuous_data(year=year)
+        self._update_integrated_data(year=year)
 
 
     def _update_continuous_data(self, year: int=None) -> None:
@@ -104,7 +105,7 @@ class NAPS_Pollutant_Concentrations():
             pollutant = data[0]["Pollutant"] # should only have one pollutant per csvfile
             pollutant_id = Tables.get_naps_pollutants(pollutant)
             
-            for line in data:
+            for line in tqdm(data, desc="Uploading"):
                 naps_id = line["NAPSID"]
                 naps_station_id = Tables.get_naps_station(naps_id)
                 date = line["Date"]
@@ -156,7 +157,7 @@ class NAPS_Pollutant_Concentrations():
             compounds = Tables.get_naps_integrated_all_pollutant_compounds(pollutant.upper())
             table = Tables.NAPS_INTEGRATED_VOC
         
-        for line in lines:
+        for line in tqdm(lines, desc="Uploading"):
             naps_station_id = Tables.get_naps_station(int(line.pop("NAPS ID")))
             sample_type_id = Tables.get_naps_sample_type(line.pop("Sample Type"))
             year, month, day = [int(d) for d in line.pop("Sampling Date").split('-')]
@@ -276,16 +277,17 @@ class NAPS_Pollutant_Concentrations():
         # TODO: possible infinite while loop
         download_size = -1
         size = int(requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, stream=True).headers["Content-Length"])
-        
-        while abs(download_size - size) > 1: # last byte of data isn't important I think ...
-            headers = {"User-Agent": "Mozilla/5.0", "Range": f"bytes={download_size+1}-{size}"}
-            with requests.get(url, headers=headers, stream=True, timeout=None) as r:
-                with open(filepath, "ab") as f:
-                    shutil.copyfileobj(r.raw, f, 1024)
-                    f.flush()
-                    os.fsync(f.fileno())
-            download_size = os.path.getsize(filepath)
-        
+        with tqdm(total=size, desc="Downloading") as pbar:
+            while abs(download_size - size) > 1: # last byte of data isn't important I think ...
+                headers = {"User-Agent": "Mozilla/5.0", "Range": f"bytes={download_size+1}-{size}"}
+                with requests.get(url, headers=headers, stream=True, timeout=None) as r:
+                    with open(filepath, "ab") as f:
+                        shutil.copyfileobj(r.raw, f, 1024)
+                        f.flush()
+                        os.fsync(f.fileno())
+                download_size = os.path.getsize(filepath)
+                pbar.update(download_size)
+
         # if file is a zip file, will unzip contents to the same directory and return directory name
         if filepath.split('.')[-1] == "zip":
             return self.__unzip_file(filepath)
