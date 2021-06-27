@@ -26,9 +26,9 @@ class Views:
                     naps_stations.name as naps_station,
                     o3.density AS o3,
                     pm25.density AS pm25,
-                    co.density AS no2,
+                    co.density AS co,
                     so2.density AS so2,
-                    no2.density AS co,
+                    no2.density AS no2,
                     no.density AS no,
                     nox.density AS nox,
                     pm10.density AS pm10
