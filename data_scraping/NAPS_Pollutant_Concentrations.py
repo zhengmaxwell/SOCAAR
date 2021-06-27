@@ -19,6 +19,8 @@ class NAPS_Pollutant_Concentrations():
 
     FIRST_YEAR = 1990
     LAST_YEAR = datetime.now().year - 1 # TODO: check this range
+
+    INTEGRATED_POLLUTANTS = ["CARBONYLS", "VOC"]
     
 
     def __init__(self, hostname, database, user, password) -> None:
@@ -54,8 +56,9 @@ class NAPS_Pollutant_Concentrations():
 
         Tables.connect(self._psql)
         Tables.create_naps_continuous()
-        Tables.create_naps_integrated_carbonyls()
-        Tables.create_naps_integrated_voc()
+        
+        for pollutant in NAPS_Pollutant_Concentrations.INTEGRATED_POLLUTANTS:
+            Tables.create_naps_integrated_pollutant(pollutant)
 
     def _get_data(self, year: int, dataTypeVal: int) -> None:
 

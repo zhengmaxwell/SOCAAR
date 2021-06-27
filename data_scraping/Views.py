@@ -8,6 +8,7 @@ class Views:
 
     NAPS_CONTINUOUS = "naps_continuous_pollutant_concentrations_master"
     NAPS_INTEGRATED_CARBONYLS = "naps_integrated_carbonyls_pollutant_concentrations_master"
+    NAPS_INTEGRATED_VOC = "naps_integrated_voc_pollutant_concentrations_master"
 
     
     @classmethod
@@ -78,12 +79,17 @@ class Views:
         """
         Views.psql.command(command, 'w')
 
-    
+
     @staticmethod
-    def create_naps_integrated_carbonyls(psql: Postgres) -> None:
+    def create_naps_integrated_pollutant(table: str, pollutant: str) -> None:
+
+        if pollutant.upper() == "CARBONYLS":
+            view = Views.NAPS_INTEGRATED_CARBONYLS
+        elif pollutant.upper() == "VOC":
+            view = Views.NAPS_INTEGRATED_VOC
 
         command = f"""
-            CREATE OR REPLACE VIEW {Views.NAPS_INTEGRATED_CARBONYLS} AS
+            CREATE OR REPLACE VIEW {view} AS
                 SELECT 
                     stations.name AS naps_station,
                     sample_types.name AS sample_type,
@@ -91,7 +97,7 @@ class Views:
                     master.density,
                     master.density_mdl,
                     validation_codes.name AS vflag
-                FROM naps_integrated_carbonyls_pollutant_concentrations	master
+                FROM {table} master
                 INNER JOIN naps_stations stations
                     ON stations.id = master.naps_station
                 INNER JOIN naps_sample_types sample_types

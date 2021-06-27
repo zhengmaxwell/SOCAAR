@@ -96,15 +96,21 @@ class Tables:
             Tables.psql.command(command, 'w')
             Views.create_naps_continuous()
 
+
     @staticmethod
-    def create_naps_integrated_carbonyls() -> None:
+    def create_naps_integrated_pollutant(pollutant: str) -> None:
 
         Tables._create_naps_stations()
         Tables._create_naps_metadata_tables()
 
-        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_CARBONYLYS):
+        if pollutant.upper() == "CARBONYLS":
+            table = Tables.NAPS_INTEGRATED_CARBONYLYS
+        elif pollutant.upper() == "VOC":
+            table = Tables.NAPS_INTEGRATED_VOC
+
+        if not Tables.psql.does_table_exist(table):
             command = f"""
-                CREATE TABLE {Tables.NAPS_INTEGRATED_CARBONYLYS} (
+                CREATE TABLE {table} (
                     id SERIAL PRIMARY KEY,
                     added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     sampling_date DATE NOT NULL,
@@ -121,34 +127,7 @@ class Tables:
                 )
             """
             Tables.psql.command(command, 'w')
-            Views.create_naps_integrated_carbonyls()
-
-    
-    @staticmethod
-    def create_naps_integrated_voc() -> None:
-
-        Tables._create_naps_stations()
-        Tables._create_naps_metadata_tables()
-
-        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_VOC):
-            command = f"""
-                CREATE TABLE {Tables.NAPS_INTEGRATED_VOC} (
-                    id SERIAL PRIMARY KEY,
-                    added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                    sampling_date DATE NOT NULL,
-                    naps_station INTEGER NOT NULL,
-                    sample_type INTEGER,
-                    compound INTEGER,
-                    density FLOAT,
-                    density_mdl FLOAT,
-                    vflag INTEGER NOT NULL,
-                    FOREIGN KEY(naps_station) REFERENCES {Tables.NAPS_STATIONS}(id),
-                    FOREIGN KEY(sample_type) REFERENCES {Tables.NAPS_SAMPLE_TYPES}(id),
-                    FOREIGN KEY(compound) REFERENCES {Tables.NAPS_INTEGRATED_VOC_COMPOUNDS}(id),
-                    FOREIGN KEY(vflag) REFERENCES {Tables.NAPS_VALIDATION_CODES}(id)
-                )
-            """
-            Tables.psql.command(command, 'w')
+            Views.create_naps_integrated_pollutant(table, pollutant)
 
 
     # given a value will return the primary key id from the respective metadata table
