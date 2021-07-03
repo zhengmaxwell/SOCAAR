@@ -13,8 +13,9 @@ class Tables:
     
     MOE = "moe_pollutant_concentrations"
     NAPS_CONTINUOUS = "naps_continuous_pollutant_concentrations"
-    NAPS_INTEGRATED_CARBONYLYS = "naps_integrated_carbonyls_pollutant_concentrations"
+    NAPS_INTEGRATED_CARBONYLS = "naps_integrated_carbonyls_pollutant_concentrations"
     NAPS_INTEGRATED_VOC = "naps_integrated_voc_pollutant_concentrations"
+    NAPS_INTEGRATED_PAH = "naps_integrated_pah_pollutant_concentrations"
     MOE_STATIONS = "moe_stations"
     NAPS_STATIONS = "naps_stations"
     NAPS_POLLUTANTS = "naps_pollutants"
@@ -26,6 +27,7 @@ class Tables:
     NAPS_SPECIATION_SAMPLER_CARTRIDGES = "naps_speciation_sampler_cartridges"
     NAPS_INTEGRATED_CARBONYLS_COMPOUNDS = "naps_integrated_carbonyls_compounds"
     NAPS_INTEGRATED_VOC_COMPOUNDS = "naps_integrated_voc_compounds"
+    NAPS_INTEGRATED_PAH_COMPOUNDS = "naps_integrated_pah_compounds"
 
     # name: id
     seen_moe_stations = {}
@@ -39,7 +41,7 @@ class Tables:
     seen_naps_speciation_sampler_cartridges = {}
     seen_naps_integrated_carbonyls_compounds = {}
     seen_naps_integrated_voc_compounds = {}
-    
+    seen_naps_integrated_pah_compounds = {}
 
     @classmethod
     def connect(cls, psql: Postgres) -> None:
@@ -100,13 +102,12 @@ class Tables:
     @staticmethod
     def create_naps_integrated_pollutant(pollutant: str) -> None:
 
+        table = Tables.get_naps_integrated_pollutant_table(pollutant)
+        compounds = Tables._get_naps_integrated_pollutant_compounds_table(pollutant)
+        
         Tables._create_naps_stations()
         Tables._create_naps_metadata_tables()
-
-        if pollutant.upper() == "CARBONYLS":
-            table = Tables.NAPS_INTEGRATED_CARBONYLYS
-        elif pollutant.upper() == "VOC":
-            table = Tables.NAPS_INTEGRATED_VOC
+        Tables._create_naps_integrated_pollutant_compounds(pollutant)
 
         if not Tables.psql.does_table_exist(table):
             command = f"""
@@ -122,12 +123,12 @@ class Tables:
                     vflag INTEGER NOT NULL,
                     FOREIGN KEY(naps_station) REFERENCES {Tables.NAPS_STATIONS}(id),
                     FOREIGN KEY(sample_type) REFERENCES {Tables.NAPS_SAMPLE_TYPES}(id),
-                    FOREIGN KEY(compound) REFERENCES {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS}(id),
+                    FOREIGN KEY(compound) REFERENCES {compounds}(id),
                     FOREIGN KEY(vflag) REFERENCES {Tables.NAPS_VALIDATION_CODES}(id)
                 )
             """
             Tables.psql.command(command, 'w')
-            Views.create_naps_integrated_pollutant(table, pollutant)
+            Views.create_naps_integrated_pollutant(table, compounds, pollutant)
 
 
     # given a value will return the primary key id from the respective metadata table
@@ -234,14 +235,26 @@ class Tables:
 
         return cls.seen_naps_speciation_sampler_cartridges[speciation_sampler_cartridge]
 
+
+    @staticmethod
+    def get_naps_integrated_pollutant_table(pollutant: str) -> str:
+
+        if pollutant.upper() == "CARBONYLS":
+            table = Tables.NAPS_INTEGRATED_CARBONYLS
+        elif pollutant.upper() == "VOC":
+            table = Tables.NAPS_INTEGRATED_VOC
+        elif pollutant.upper() == "PAH":
+            table = Tables.NAPS_INTEGRATED_PAH
+        else:
+            raise ValueError(f"pollutant {pollutant} not recognized")
+
+        return table
+
     
     @staticmethod
     def get_naps_integrated_all_pollutant_compounds(pollutant: str) -> List[str]:
 
-        if pollutant.upper() == "CARBONYLS":
-            table = Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS
-        elif pollutant.upper() == "VOC":
-            table = Tables.NAPS_INTEGRATED_VOC_COMPOUNDS
+        table = Tables._get_naps_integrated_pollutant_compounds_table(pollutant)
 
         command = f"SELECT name FROM {table}"
         return Tables.psql.command(command, 'r')
@@ -250,12 +263,8 @@ class Tables:
     @classmethod
     def get_naps_integrated_pollutant_compound(cls, pollutant: str, compound: str) -> int:
 
-        if pollutant.upper() == "CARBONYLS":
-            table = cls.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS
-            seen = cls.seen_naps_integrated_carbonyls_compounds
-        elif pollutant.upper() == "VOC":
-            table = Tables.NAPS_INTEGRATED_VOC_COMPOUNDS
-            seen = cls.seen_naps_integrated_voc_compounds
+        table = Tables._get_naps_integrated_pollutant_compounds_table(pollutant)
+        seen = Tables._get_seen_naps_integrated_pollutant_compounds(pollutant)
 
         medium, observation_type, analytical_instrument = None, None, None
         compound_name = compound.split("-metadata:")[0]
@@ -271,7 +280,7 @@ class Tables:
         if compound_name not in seen:
             command = f"""
                 SELECT compounds.id
-                FROM naps_integrated_voc_compounds compounds
+                FROM {table} compounds
                 INNER JOIN naps_mediums mediums
                     ON mediums.id = compounds.medium
                 INNER JOIN naps_observation_types obs
@@ -291,6 +300,36 @@ class Tables:
             seen[compound] = cls.psql.command(command, 'r', str_params=str_params)[0][0]
 
         return seen[compound]
+
+    
+    @staticmethod
+    def _get_seen_naps_integrated_pollutant_compounds(pollutant: str) -> str:
+
+        if pollutant.upper() == "CARBONYLS":
+            seen = Tables.seen_naps_integrated_carbonyls_compounds
+        elif pollutant.upper() == "VOC":
+            seen = Tables.seen_naps_integrated_voc_compounds
+        elif pollutant.upper() == "PAH":
+            seen = Tables.seen_naps_integrated_pah_compounds
+        else:
+            raise ValueError(f"pollutant {pollutant} not recognized")
+
+        return seen
+
+    
+    @staticmethod
+    def _get_naps_integrated_pollutant_compounds_table(pollutant: str) -> str:
+
+        if pollutant.upper() == "CARBONYLS":
+            table = "naps_integrated_carbonyls_compounds"
+        elif pollutant.upper() == "VOC":
+            table = "naps_integrated_voc_compounds"
+        elif pollutant.upper() == "PAH":
+            table = "naps_integrated_pah_compounds"
+        else:
+            raise ValueError(f"pollutant {pollutant} not recognized")
+
+        return table
 
 
     @staticmethod
@@ -451,7 +490,7 @@ class Tables:
             command = f"""
                 CREATE TABLE {Tables.NAPS_OBSERVATION_TYPES} (
                     id SERIAL PRIMARY KEY,
-                    name VARCHAR(2),
+                    name VARCHAR,
                     description VARCHAR
                 )
             """
@@ -475,7 +514,7 @@ class Tables:
             command = f"""
                 CREATE TABLE {Tables.NAPS_MEDIUMS} (
                     id SERIAL PRIMARY KEY,
-                    name VARCHAR(4),
+                    name VARCHAR,
                     description VARCHAR
                 )
             """
@@ -517,11 +556,13 @@ class Tables:
                 Tables.psql.command(command, 'w', str_params=str_params)
 
     @staticmethod
-    def _create_naps_integrated_carbonyls_compounds() -> None:
+    def _create_naps_integrated_pollutant_compounds(pollutant: str) -> None:
 
-        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS):
+        table = Tables._get_naps_integrated_pollutant_compounds_table(pollutant)
+
+        if not Tables.psql.does_table_exist(table):
             command = f"""
-                CREATE TABLE {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} (
+                CREATE TABLE {table} (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR NOT NULL,
                     medium INTEGER,
@@ -534,8 +575,8 @@ class Tables:
             """
             Tables.psql.command(command, 'w')
 
-            with open(f"{os.path.dirname(__file__)}/naps_data/carbonyls_compounds.json", 'r') as carbonyls_compounds_file:
-                data = json.loads(carbonyls_compounds_file.read())
+            with open(f"{os.path.dirname(__file__)}/naps_data/{pollutant.lower()}_compounds.json", 'r') as compounds_file:
+                data = json.loads(compounds_file.read())
 
             for row in data:
                 medium = Tables.get_naps_medium(row["Medium"])
@@ -543,40 +584,7 @@ class Tables:
                 analytical_instrument = Tables.get_naps_analytical_instrument(row["Analytical Instrument"])
 
                 command = f"""
-                    INSERT INTO {Tables.NAPS_INTEGRATED_CARBONYLS_COMPOUNDS} (name, medium, observation_type, analytical_instrument)
-                    VALUES (%(name)s, {medium}, {observation_type}, {analytical_instrument})
-                """
-                str_params = {"name": row["Compound"]}
-                Tables.psql.command(command, 'w', str_params=str_params)
-
-    @staticmethod
-    def _create_naps_integrated_voc_compounds() -> None:
-
-        if not Tables.psql.does_table_exist(Tables.NAPS_INTEGRATED_VOC_COMPOUNDS):
-            command = f"""
-                CREATE TABLE {Tables.NAPS_INTEGRATED_VOC_COMPOUNDS} (
-                    id SERIAL PRIMARY KEY,
-                    name VARCHAR NOT NULL,
-                    medium INTEGER,
-                    observation_type INTEGER,
-                    analytical_instrument INTEGER,
-                    FOREIGN KEY(medium) REFERENCES {Tables.NAPS_MEDIUMS}(id),
-                    FOREIGN KEY(observation_type) REFERENCES {Tables.NAPS_OBSERVATION_TYPES}(id),
-                    FOREIGN KEY(analytical_instrument) REFERENCES {Tables.NAPS_ANALYTICAL_INSTRUMENTS}(id)
-                )
-            """
-            Tables.psql.command(command, 'w')
-
-            with open(f"{os.path.dirname(__file__)}/naps_data/voc_compounds.json", 'r') as voc_compounds_file:
-                data = json.loads(voc_compounds_file.read())
-
-            for row in data:
-                medium = Tables.get_naps_medium(row["Medium"])
-                observation_type = Tables.get_naps_observation_type(row["Observation Type"])
-                analytical_instrument = Tables.get_naps_analytical_instrument(row["Analytical Instrument"])
-
-                command = f"""
-                    INSERT INTO {Tables.NAPS_INTEGRATED_VOC_COMPOUNDS} (name, medium, observation_type, analytical_instrument)
+                    INSERT INTO {table} (name, medium, observation_type, analytical_instrument)
                     VALUES (%(name)s, {medium}, {observation_type}, {analytical_instrument})
                 """
                 str_params = {"name": row["Compound"]}
@@ -592,5 +600,3 @@ class Tables:
         Tables._create_naps_observation_types()
         Tables._create_naps_mediums()
         Tables._create_naps_speciation_sampler_cartridges()
-        Tables._create_naps_integrated_carbonyls_compounds()
-        Tables._create_naps_integrated_voc_compounds()

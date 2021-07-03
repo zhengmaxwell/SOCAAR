@@ -34,5 +34,9 @@
     {
         "Medium": "CV",
         "Description": "Summa Canister"
+    },
+    {
+        "Medium": "TGFF+PUF",
+        "Description": "Teflon bonded to Glass Fibre Filter + 2 Polyurethane Foam plugs (to collect semi-volatile organic compounds)"
     }
 ]

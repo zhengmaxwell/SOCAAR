@@ -14,5 +14,9 @@
     {
         "Observation Type": "TP",
         "Description": "Total Particulate (PM30)"
+    },
+    {
+        "Observation Type": "TP+G",
+        "Description": "Total Particulate (PM30) + Gas-phase (Volatile)"
     }
 ]

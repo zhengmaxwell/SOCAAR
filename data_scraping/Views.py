@@ -9,6 +9,7 @@ class Views:
     NAPS_CONTINUOUS = "naps_continuous_pollutant_concentrations_master"
     NAPS_INTEGRATED_CARBONYLS = "naps_integrated_carbonyls_pollutant_concentrations_master"
     NAPS_INTEGRATED_VOC = "naps_integrated_voc_pollutant_concentrations_master"
+    NAPS_INTEGRATED_PAH = "naps_integrated_pah_pollutant_concentrations_master"
 
     
     @classmethod
@@ -17,6 +18,7 @@ class Views:
         cls.psql = psql
 
 
+    # TODO: use variables and loops instead of hardcoding all this
     @staticmethod
     def create_naps_continuous() -> None:
 
@@ -79,18 +81,16 @@ class Views:
         """
         Views.psql.command(command, 'w')
 
-
+    # TODO: add all compounds as column names like the excel files
     @staticmethod
-    def create_naps_integrated_pollutant(table: str, pollutant: str) -> None:
+    def create_naps_integrated_pollutant(table: str, compounds_table, pollutant: str) -> None:
 
-        if pollutant.upper() == "CARBONYLS":
-            view = Views.NAPS_INTEGRATED_CARBONYLS
-        elif pollutant.upper() == "VOC":
-            view = Views.NAPS_INTEGRATED_VOC
+        view = Views._get_naps_integrated_pollutant_view(pollutant)
 
         command = f"""
             CREATE OR REPLACE VIEW {view} AS
                 SELECT 
+                    master.sampling_date,
                     stations.name AS naps_station,
                     sample_types.name AS sample_type,
                     compounds.name AS compound,
@@ -102,9 +102,24 @@ class Views:
                     ON stations.id = master.naps_station
                 INNER JOIN naps_sample_types sample_types
                     ON sample_types.id = master.sample_type
-                INNER JOIN naps_integrated_carbonyls_compounds compounds
+                INNER JOIN {compounds_table} compounds
                     ON compounds.id = master.compound
                 INNER JOIN naps_validation_codes validation_codes
                     ON validation_codes.id = master.vflag
         """
         Views.psql.command(command, 'w')
+
+
+    @staticmethod
+    def _get_naps_integrated_pollutant_view(pollutant: str) -> str:
+
+        if pollutant.upper() == "CARBONYLS":
+            view = Views.NAPS_INTEGRATED_CARBONYLS
+        elif pollutant.upper() == "VOC":
+            view = Views.NAPS_INTEGRATED_VOC
+        elif pollutant.upper() == "PAH":
+            view = Views.NAPS_INTEGRATED_PAH
+        else:
+            raise ValueError(f"pollutant {pollutant} not recognized")
+
+        return view
