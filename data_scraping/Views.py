@@ -10,6 +10,8 @@ class Views:
     NAPS_INTEGRATED_CARBONYLS = "naps_integrated_carbonyls_pollutant_concentrations_master"
     NAPS_INTEGRATED_VOC = "naps_integrated_voc_pollutant_concentrations_master"
     NAPS_INTEGRATED_PAH = "naps_integrated_pah_pollutant_concentrations_master"
+    NAPS_INTEGRATED_PM25 = "naps_integrated_pm25_pollutant_concentrations_master"
+    NAPS_INTEGRATED_PM25_10 = "naps_integrated_pm25_10_pollutant_concentrations_master"
 
     
     @classmethod
@@ -119,6 +121,10 @@ class Views:
             view = Views.NAPS_INTEGRATED_VOC
         elif pollutant.upper() == "PAH":
             view = Views.NAPS_INTEGRATED_PAH
+        elif pollutant.upper() == "PM2.5":
+            view = Views.NAPS_INTEGRATED_PM25
+        elif pollutant.upper() == "PM2.5-10":
+            view = Views.NAPS_INEGRATED_PM25_10
         else:
             raise ValueError(f"pollutant {pollutant} not recognized")
 

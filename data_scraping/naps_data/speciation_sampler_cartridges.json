@@ -10,5 +10,9 @@
     {
         "Speciation Sampler Cartridge": "C",
         "Description": "configuration (PM2.5 Inlet - Sodium Carbonate Coated Denuder - Citric Acid Coated Denuder - Teflon Filter - Nylon Filter"
+    },
+    {
+        "Speciation Sampler Cartridge": "A+B",
+        "Description": "configuration (PM2.5 Inlet - Quartz Filter) + configuration (PM2.5 Inlet - Teflon Filter - Quartz Filter)"
     }
 ]

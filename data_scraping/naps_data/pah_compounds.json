@@ -1,1 +1,378 @@
-[{"Compound": "TP", "Medium": "TGFF", "Observation Type": "TP", "Analytical Instrument": "GC/MS", "Units": "ug/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Acenaphthylene (AL)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Acenaphthene (AE)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Fluorene (FL)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "2-Methylfluorene (MFL)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Phenanthrene (PHE)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Anthracene (AN)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Fluoranthene (FLT)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Pyrene (PY)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Retene (RET)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(a)Fluorene (BaFL)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(b)Fluorene (BbFL)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "1-Methylpyrene (MPY)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(g,h,i)Fluoranthene (BghiF)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benz(a)Anthracene (BaA)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Triphenylene (Tri)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Chrysene (Chry)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Chrysene & Triphenylene (C&T)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "7-Methylbenz(a)Anthracene (MBaA)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(b)Fluoranthene (BbFLT)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(k)Fluoranthene (BkFLT)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(e)Pyrene (BeP)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(a)Pyrene (BaP)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Perylene (PER)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "3-Methylcholanthrene (MCH)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Indeno(1,2,3-cd)Fluoranthene (IF)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Indeno(1,2,3-cd)Pyrene (IP)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Dibenz(a,c)&(a,h)Anthracene (DahA)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(b)Chrysene (BbC)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Benzo(g,h,i)Perylene (BghiP)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Anthanthrene (ANT)", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-AL", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-AE", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-FL", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-PHE", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "ng/m3", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-AN", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-PY", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-BaA", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-Tri", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-Chry", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-BbFLT", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-BeP", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-BaP", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-PER", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-IP", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-DahA", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}, {"Compound": "Recovery-BghiP", "Medium": "TGFF+PUF", "Observation Type": "TP+G", "Analytical Instrument": "GC/MS", "Units": "%", "Speciation Sampler Cartridge": "NULL"}]
+[
+    {
+        "Compound": "TP",
+        "Medium": "TGFF",
+        "Observation Type": "TP",
+        "Analytical Instrument": "Microbalance",
+        "Units": "ug/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Acenaphthylene (AL)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Acenaphthene (AE)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Fluorene (FL)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "2-Methylfluorene (MFL)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Phenanthrene (PHE)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Anthracene (AN)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Fluoranthene (FLT)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Pyrene (PY)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Retene (RET)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(a)Fluorene (BaFL)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(b)Fluorene (BbFL)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "1-Methylpyrene (MPY)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(g,h,i)Fluoranthene (BghiF)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benz(a)Anthracene (BaA)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Triphenylene (Tri)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Chrysene (Chry)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Chrysene & Triphenylene (C&T)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "7-Methylbenz(a)Anthracene (MBaA)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(b)Fluoranthene (BbFLT)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(k)Fluoranthene (BkFLT)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(e)Pyrene (BeP)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(a)Pyrene (BaP)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Perylene (PER)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "3-Methylcholanthrene (MCH)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Indeno(1,2,3-cd)Fluoranthene (IF)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Indeno(1,2,3-cd)Pyrene (IP)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Dibenz(a,c)&(a,h)Anthracene (DahA)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(b)Chrysene (BbC)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Benzo(g,h,i)Perylene (BghiP)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Anthanthrene (ANT)",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "ng/m3",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-AL",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-AE",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-FL",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-PHE",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-AN",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-PY",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-BaA",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-Tri",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-Chry",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-BbFLT",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-BeP",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-BaP",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-PER",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-IP",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-DahA",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    },
+    {
+        "Compound": "Recovery-BghiP",
+        "Medium": "TGFF+PUF",
+        "Observation Type": "TP+G",
+        "Analytical Instrument": "GC/MS",
+        "Units": "%",
+        "Speciation Sampler Cartridge": "NULL"
+    }
+]

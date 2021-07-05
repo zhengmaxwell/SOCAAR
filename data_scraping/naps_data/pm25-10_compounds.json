@@ -1,0 +1,346 @@
+[
+    {
+        "Compound": "PM2.5-10", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "Microbalance", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Aluminum (Al)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Silicon (Si)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Sulphur (S)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Potassium (K)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Calcium (Ca)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Titanium (Ti)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Vanadium (V)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Chromium (Cr)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Manganese (Mn)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Iron (Fe)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Nickel (Ni)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Zinc (Zn)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Selenium (Se)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Bromine (Br)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Rubidium (Rb)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Strontium (Sr)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Cadmium (Cd)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Tin (Sn)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Antimony (Sb)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Cesium (Cs)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Barium (Ba)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Lead (Pb)", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "ED-XRF", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Fluoride", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Acetate", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Formate", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Propionate", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "MSA", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Chloride", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Nitrite", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Sulphate", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Oxalate", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Bromide", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Nitrate", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Phosphate", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Lithium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Sodium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Ammonium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Potassium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Magnesium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Calcium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Strontium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    },
+    {
+        "Compound": "Barium", 
+        "Medium": "TF", 
+        "Observation Type": "CP", 
+        "Analytical Instrument": "IC", 
+        "Speciation Sampler Cartridge": "NULL", 
+        "Units": "ug/m3"
+    }
+]

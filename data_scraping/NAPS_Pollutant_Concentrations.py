@@ -11,7 +11,6 @@ import pandas as pd
 from openpyxl import load_workbook
 from tqdm import tqdm
 from typing import Union, List, Dict, Tuple
-import sys # TODO remove maybe
 
 
 
@@ -20,7 +19,7 @@ class NAPS_Pollutant_Concentrations():
     FIRST_YEAR = 1990
     LAST_YEAR = datetime.now().year - 1 # TODO: check this range
 
-    INTEGRATED_POLLUTANTS = ["CARBONYLS", "VOC", "PAH"]
+    INTEGRATED_POLLUTANTS = ["CARBONYLS", "VOC", "PAH", "PM2.5", "PM2.5-10"]
     
 
     def __init__(self, hostname, database, user, password) -> None:
@@ -155,78 +154,71 @@ class NAPS_Pollutant_Concentrations():
 
     def _insert_integrated_data(self, data: Tuple[str, List[Dict[str, str]]]) -> None:
 
-        pollutant, sheets = data 
-        table = Tables.get_naps_integrated_pollutant_table(pollutant)
-        compounds = Tables.get_naps_integrated_all_pollutant_compounds(pollutant.upper())
+        pollutant, workbooks = data
+        table = Tables.integrated_pollutants[pollutant.upper()]["table"]
+        compounds = Tables.integrated_pollutants[pollutant.upper()]["compounds_table"]
+        total_lines = sum([sum([len(wb[sheet]) for sheet in wb.keys()]) for wb in workbooks.values()])
 
-        with tqdm(total=sum([len(sheet) for sheet in sheets])) as pbar:
-            for sheet in sheets:
-                for line in sheet:
-                    naps_station_id = Tables.get_naps_station(int(line.pop("NAPS ID")))
-                    sample_type_id = Tables.get_naps_sample_type(line.pop("Sample Type"))
-                    year, month, day = [int(d) for d in line.pop("Sampling Date").split('-')] # expecting 'year-month-day'
-                    sampling_date = str(date(year, month, day))
-                    pbar.set_description(f"Integrated-{pollutant}-{year} Uploading")
+        with tqdm(total=total_lines) as pbar:
+            for naps_id in workbooks:
+                naps_station_id = Tables.get_naps_station(int(naps_id))
+                for sheet in workbooks[naps_id]:
+                    for line in workbooks[naps_id][sheet]:
+                        sample_type_id = Tables.get_naps_sample_type(line.pop("Sample Type"))
+                        year, month, day = [int(d) for d in line.pop("Sampling Date").split('-')] # expecting 'year-month-day'
+                        sampling_date = str(date(year, month, day))
+                        pbar.set_description(f"Integrated-{pollutant}-{year} Uploading")
 
-                    for c in compounds:
-                        compound = c[0]
-                        if compound in line.keys():
-                            is_recovery = "Recovery" in compound
-                            compound_id = Tables.get_naps_integrated_pollutant_compound(pollutant.upper(), compound)
-                            density = str(line.pop(compound)).replace("None", "NULL") if line[compound] is None else float(line.pop(compound))
-                            # find short name if available
-                            # example: 'Acenaphthylene (AL)' => 'AL'
-                            compound = compound if compound[-1] != ')' else compound.split()[-1][1:-1]
-                            if is_recovery:
-                                density_mdl, vflag = "NULL", "NULL"
-                            else:
-                                density_mdl = "NULL" if line[f"{compound}-MDL"] is None else float(line.pop(f"{compound}-MDL"))
-                                vflag = line.pop(f"{compound}-VFlag") or "NULL"
-                            vflag_id = Tables.get_naps_validation_code(vflag)
+                        for compound in line.keys():
+                            if "MDL" not in compound and "VFlag" not in compound:
+                                compound_name, metadata = compound.split("-metadata:")
+                                compound_id = Tables.get_naps_integrated_pollutant_compound(pollutant.upper(), compound)
+                                density = "NULL" if line[compound] is None else float(line[compound])
 
-                            command = f"""
-                                INSERT INTO {table} (sampling_date, naps_station, sample_type, compound, density, density_mdl, vflag)
-                                VALUES (%(sampling_date)s, {naps_station_id}, {sample_type_id}, {compound_id}, {density}, {density_mdl}, {vflag_id})
-                            """
-                            str_params = {"sampling_date": sampling_date}
-                            self._psql.command(command, 'w', str_params=str_params)
+                                if "Recovery" in compound_name:
+                                    has_mdl, has_vflag = False, False
+                                elif pollutant == "PM2.5" and sheet == "OCEC & OC Artifacts" and ("POC" in compound_name or [c for c in compound_name if c.isdigit()]):
+                                    has_mdl = False
+                                else:
+                                    has_mdl, has_vflag = True, True
 
-                    # remaining compounds are duplicates with different metadata
-                    # TODO: try to combine this with above
-                    for compound in line.keys():
-                        if "MDL" not in compound and "VFlag" not in compound:
-                            compound_name, metadata = compound.split("-metadata:")
-                            compound_id = Tables.get_naps_integrated_pollutant_compound(pollutant.upper(), compound)
-                            density = "NULL" if line[compound] is None else float(line[compound])
-                            density_mdl_name = f"{compound_name}-MDL-metadata:{metadata}"
-                            density_mdl = "NULL" if line[density_mdl_name] is None else float(line[density_mdl_name])
-                            vflag_name = f"{compound_name}-VFlag-metadata:{metadata}"
-                            vflag = line[vflag_name] or "NULL"
-                            vflag_id = Tables.get_naps_validation_code(vflag)
+                                # find short name if available
+                                # example: 'Acenaphthylene (AL)' => 'AL'
+                                # does not apply in this specific sheet: 'OCEC & OC Artifacts' for PM2.5
+                                if compound_name[-1] == ')' and not (pollutant == "PM2.5" and sheet == "OCEC & OC Artifacts"):
+                                    compound_name = compound_name.split()[-1][1:-1]
+                                
+                                if has_mdl:
+                                    density_mdl_name = f"{compound_name}-MDL-metadata:{metadata}"
+                                    density_mdl = "NULL" if line[density_mdl_name] is None else float(line[density_mdl_name])
+                                else:
+                                    density_mdl = "NULL"
 
-                            command = f"""
-                                INSERT INTO {table} (sampling_date, naps_station, sample_type, compound, density, density_mdl, vflag)
-                                VALUES (%(sampling_date)s, {naps_station_id}, {sample_type_id}, {compound_id}, {density}, {density_mdl}, {vflag_id})
-                            """
-                            str_params = {"sampling_date": sampling_date}
-                            self._psql.command(command, 'w', str_params=str_params)
-                    
-                    pbar.update(1)
+                                if has_vflag:
+                                    vflag_name = f"{compound_name}-VFlag-metadata:{metadata}"
+                                    vflag = "NULL" if (not line[vflag_name] or not line[vflag_name].strip()) else line[vflag_name]
+                                    vflag_id = Tables.get_naps_validation_code(vflag)
+                                else:
+                                    vflag_id = "NULL"
+
+                                command = f"""
+                                    INSERT INTO {table} (sampling_date, naps_station, sample_type, compound, density, density_mdl, vflag)
+                                    VALUES (%(sampling_date)s, {naps_station_id}, {sample_type_id}, {compound_id}, {density}, {density_mdl}, {vflag_id})
+                                """
+                                str_params = {"sampling_date": sampling_date}
+                                self._psql.command(command, 'w', str_params=str_params)
+                        
+                        pbar.update(1)
 
     def _get_integrated_data(self, zip_dir: str) -> Tuple[str, List[Dict[str, str]]]:
 
-        pollutant = zip_dir.split('\\')[-1].split('-')[0]
+        pollutant = "PM2.5-10" if zip_dir.split('\\')[-1] == "PM2.5-10" else zip_dir.split('\\')[-1].split('-')[0]
 
-        # main sheet listed first
-        pollutant_sheets = {
-            "CARBONYLS": ["Carbonyls"],
-            "VOC": ["VOC"],
-            "PAH": ["PAH (TP+G)", "TSP"]
-        }
+        unwanted_sheets = ["Station Info", "Metadata Information"]
+        # can get naps id from file name
+        unwanted_columns = ["NAPS Site ID", "NAPS ID", "Start Time", "End Time", "Actual Volume", "Pres.", "Temp."]
 
-        unwanted_columns = ["Start Time", "End Time", "Actual Volume"]
-
-        total_data = []
+        total_data = {}
         with tqdm(os.listdir(zip_dir)) as tfiles:
             for f in tfiles:
                 if f.split('.')[-1] == "xlsx" and f.split('.')[0].split('_')[-1] == "EN":
@@ -236,63 +228,79 @@ class NAPS_Pollutant_Concentrations():
                     wb = load_workbook(xlsx_filepath)
                     tfiles.set_description(f"Integrated-{pollutant}-{year} Formatting")
                     tfiles.set_postfix(naps_id=naps_id)
+                    wb_data = {}
 
-                    for sheet_name in pollutant_sheets[pollutant]:
+                    for sheet_name in [name for name in wb.sheetnames if name not in unwanted_sheets]:
                         sheet = wb[sheet_name]
                         column_order = {} # col: name
-                        meta_data_headers = ["Medium", "Observation Type", "Analytical Instrument", "Analytical Method", "Speciation Sampler Cartridge"]
+                        meta_data_headers = ["Medium", "Observation Type", "Analytical Instrument", "Analytical Method", "Cartridge", "Units"]
                         meta_data_rows = {} # name: row
                         data_len = None
-                        wb_data = []
+                        sheet_data = []
 
                         for row in range(1, sheet.max_row+1):
                             # find column headers
                             if not column_order:
                                 # find metadata headers
                                 if sheet[row][0].value in meta_data_headers:
-                                    meta_data_rows[sheet[row][0].value] = row
-
+                                    meta_data_name = sheet[row][0].value
+                                    meta_data_name = meta_data_name.replace("Analytical Method", "Analytical Instrument")
+                                    meta_data_rows[meta_data_name] = row
+                                    
                                 line = ["None" if not cell.value else str(cell.value) for cell in sheet[row]]
                                 if line[0] in ["NAPS Site ID", "NAPS ID"]: # TODO: find better way than hardcoding column header start
-                                    # replace 'analytical method' with 'analytical instrument' header
-                                    if "Analytical Method" in meta_data_rows:
-                                        meta_data_rows["Analytical Instrument"] = meta_data_rows.pop("Analytical Method")
-
                                     line = list(filter(lambda val: val != "None", line)) # strip None values from end of row
-                                    data_len = len(line) 
+                                    data_len = len(line)
 
                                     i = 0
                                     while i < data_len:
-                                        # finding duplicate compound names with different metadata
-                                        if line.count(sheet[row][i].value) > 1:
-                                            meta_data = {}
-                                            for meta_data_name in meta_data_rows.keys(): # only use meta_data that was found
-                                                    meta_data[meta_data_name] = sheet[meta_data_rows[meta_data_name]][i].value.replace('_', '/')
-                                            for j in range(3):
-                                                column_order[i+j] = f"{sheet[row][i+j].value}-metadata:{meta_data}"
-                                            i += 3
-                                        else:
-                                            # TODO: create function to normalize column headers
-                                            value = sheet[row][i].value
+                                        meta_data = {}
+                                        for meta_data_name in meta_data_rows.keys(): # only use meta_data that was found
+                                                meta_data_val = sheet[meta_data_rows[meta_data_name]][i].value
+                                                if meta_data_val:
+                                                    meta_data_val = meta_data_val.replace("ICPMS", "ICP/MS")
+                                                    meta_data_val = meta_data_val.replace('GC-MS', 'GC/MS')
+                                                    meta_data_val = meta_data_val.replace('_', '/')
+                                                    meta_data_val = meta_data_val.replace("N/A", "NULL")
+                                                    meta_data_val = meta_data_val.replace('µ', 'u')
+                                                    meta_data_val = meta_data_val.replace(',', '+')
+                                                    meta_data_val = ''.join(meta_data_val.split()) # remove whitespace
+                                                    meta_data[meta_data_name] = meta_data_val
+                                                else:
+                                                    meta_data[meta_data_name] = "NULL"
+
+                                        value = sheet[row][i].value
+                                        if value in unwanted_columns:
+                                            i += 1
+                                        elif value in ["Sampling Type", "Sample Type", "Sampling Date", "Sample Date"]:
                                             value = value.replace("Sampling Type", "Sample Type")
-                                            value = value.replace("NAPS Site ID", "NAPS ID")
-                                            value = value.replace("Vflag", "VFlag")
+                                            value = value.replace("Sample Date", "Sampling Date")
                                             column_order[i] = value
                                             i += 1
-
-                            else:
-                                sheet_data = {}
-                                for i in range(data_len):
-                                    if column_order[i] not in unwanted_columns:
-                                        # convert datetime object to string 'year-month-day' for consistency
-                                        if type(sheet[row][i].value) == datetime:
-                                            sheet_data[column_order[i]] = str(sheet[row][i].value).split()[0]
+                                        elif "Recovery" in value:
+                                            column_order[i] = f"{value}-metadata:{meta_data}"
+                                            i += 1
                                         else:
-                                            sheet_data[column_order[i]] = sheet[row][i].value
-                                wb_data.append(sheet_data)
-
-                        total_data.append(wb_data)
-        
+                                            # this specific sheet 'OCEC & OC Artifacts' in PM2.5 doesn't have MDL for some columns
+                                            num_cols = 2 if (pollutant == "PM2.5" and sheet_name == "OCEC & OC Artifacts" and ("POC" in value or [c for c in value if c.isdigit()])) else 3
+                                            for j in range(num_cols):
+                                                value = sheet[row][i+j].value
+                                                value = value.replace("Vflag", "VFlag")
+                                                column_order[i+j] = f"{value}-metadata:{meta_data}"
+                                            i += num_cols
+                            
+                            else:
+                                line_data = {}
+                                for i in column_order:
+                                    # convert datetime object to string 'year-month-day' for consistency
+                                    if type(sheet[row][i].value) == datetime:
+                                        line_data[column_order[i]] = str(sheet[row][i].value).split()[0]
+                                    else:
+                                        line_data[column_order[i]] = sheet[row][i].value
+                                sheet_data.append(line_data)
+                        wb_data[sheet_name] = sheet_data     
+                    total_data[naps_id] = wb_data
+    
         return pollutant, total_data
 
     def _get_valid_year_range(self) -> List[int]:
