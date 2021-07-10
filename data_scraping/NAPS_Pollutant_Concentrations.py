@@ -12,7 +12,7 @@ from openpyxl import load_workbook
 from tqdm import tqdm
 from typing import Union, List, Dict, Tuple
 
-
+# TODO: try sqlalchemy
 
 class NAPS_Pollutant_Concentrations():
 
@@ -89,17 +89,18 @@ class NAPS_Pollutant_Concentrations():
 
                 if td[column_order["Description"]].text == description:
                     filename = td[column_order["Name"]].text
-                    filepath = f"{os.path.dirname(os.path.realpath(__file__))}\\{filename}"
-                    file_url = url.split('?')[0] + filename
-                    zip_dir = self.__download_file(file_url, filepath)
+                    if "ReferenceMethod" not in filename:
+                        filepath = f"{os.path.dirname(os.path.realpath(__file__))}\\{filename}"
+                        file_url = url.split('?')[0] + filename
+                        zip_dir = self.__download_file(file_url, filepath)
 
-                    if dataTypeVal:
-                        data = self._get_integrated_data(zip_dir)
-                        self._insert_integrated_data(data)
-                    else:
-                        data = self._get_continuous_data(filepath) 
-                        self._insert_continuous_data(data)
-                    self.__delete_files(filepath, zip_dir)
+                        if dataTypeVal:
+                            data = self._get_integrated_data(zip_dir)
+                            self._insert_integrated_data(data)
+                        else:
+                            data = self._get_continuous_data(filepath) 
+                            self._insert_continuous_data(data)
+                        self.__delete_files(filepath, zip_dir)
 
     def _insert_continuous_data(self, data: List[Dict[str, str]]) -> None:
 
