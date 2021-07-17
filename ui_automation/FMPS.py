@@ -1,4 +1,5 @@
 from pywinauto.application import Application
+from tqdm import tqdm
 
 app = Application(backend="uia").start(r"C:\TSI\Fast Mobility Particle Sizer\fmps.exe")
 window = app.window()
@@ -6,23 +7,30 @@ window = app.window()
 # assumes opens 'FMPS' folder; TODO: check this
 
 unwanted_folder_items = ["Header Control", "Vertical", "Horizontal"]
-file_found = True
-while file_found:
-    file_found = False
-    window.menu_select("File->Open")
-    open_dlg = window.Open
-    open_btn = open_dlg.OpenButton3
-    folder_view = open_dlg.FolderView
+folder_items = [None]
+with tqdm(desc="FMPS") as pbar:
+    while folder_items:
+        file_found = False
+        window.menu_select("File->Open")
+        open_dlg = window.Open
+        open_btn = open_dlg.OpenButton3
+        folder_view = open_dlg.FolderView
 
-    for file_name in folder_view.children_texts():
+        if folder_items[0] is None:
+            folder_items = folder_view.children_texts()
+            pbar.total = len(folder_items)
+            pbar.refresh()
+
+        file_name = folder_items.pop()
         if file_name and file_name not in unwanted_folder_items:
+            pbar.set_postfix(file=file_name)
             file_select = folder_view[file_name]
             file_select.select()
             open_btn.click()
             
             window.menu_select("File->Export")
             export_dlg = window.ExportDataOptions
-
+            
             # Data Types
             # syntax: {title: is_checked}
             # is_checked: True = checked; False = unchecked
@@ -75,9 +83,7 @@ while file_found:
 
             # Output File Name
             # assumes this is preset based on settings above # TODO: check this
-
+            
             ok_btn = export_dlg.OKButton
             ok_btn.click()
-            
-            unwanted_folder_items.append(file_name)
-            file_found = True
+            pbar.update()
