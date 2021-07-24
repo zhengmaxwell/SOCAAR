@@ -1,36 +1,48 @@
 from pywinauto.application import Application
 from tqdm import tqdm
 
-app = Application(backend="uia").start(r"C:\TSI\Fast Mobility Particle Sizer\fmps.exe")
+app = Application(backend="win32").start(r"C:\TSI\Fast Mobility Particle Sizer\fmps.exe")
 window = app.window()
-
-# assumes opens 'FMPS' folder; TODO: check this
 
 unwanted_folder_items = ["Header Control", "Vertical", "Horizontal"]
 folder_items = [None]
+file_name = None
 with tqdm(desc="FMPS") as pbar:
     while folder_items:
-        file_found = False
+        if file_name:
+             window = app[f"Fast Mobility Particle Sizer - {file_name}"]
+        window.wait("enabled")
         window.menu_select("File->Open")
-        open_dlg = window.Open
+        open_dlg = app["Open"]
+        open_dlg.wait("enabled")
         open_btn = open_dlg.OpenButton3
         folder_view = open_dlg.FolderView
+        folder_combobox = open_dlg.LookinComboBox
+        folder_name = "FMPS"
+
+        if folder_combobox.selected_text() != folder_name:
+            folder_combobox.select("Local Disk (D:)")
+            folder_view.select(folder_name)
+
+        open_btn.click()
 
         if folder_items[0] is None:
-            folder_items = folder_view.children_texts()
+            folder_items = folder_view.texts()[1::4]
             pbar.total = len(folder_items)
             pbar.refresh()
 
         file_name = folder_items.pop()
         if file_name and file_name not in unwanted_folder_items:
             pbar.set_postfix(file=file_name)
-            file_select = folder_view[file_name]
-            file_select.select()
+            folder_view.select(file_name)
             open_btn.click()
             
+            window.wait("enabled")
             window.menu_select("File->Export")
-            export_dlg = window.ExportDataOptions
+            export_dlg = app["Export Data Options"]
+            export_dlg.wait("enabled")
             
+
             # Data Types
             # syntax: {title: is_checked}
             # is_checked: True = checked; False = unchecked
@@ -49,41 +61,43 @@ with tqdm(desc="FMPS") as pbar:
             }          
 
             for title in checkboxes:
-                checkbox = export_dlg.window(title=title, control_type="CheckBox")
-                if checkbox.get_toggle_state() != checkboxes[title]:
-                    checkbox.toggle()
+                checkbox = export_dlg[title]
+                if not checkbox.is_checked() and checkboxes[title]:
+                    checkbox.check()
+                elif checkbox.is_checked() and not checkboxes[title]:
+                    checkbox.uncheck()
 
-            units_btn = export_dlg.window(title="Normalized (dW/dlogDp)", control_type="RadioButton")
-            if not units_btn.is_selected():
-                units_btn.select()
+            units_btn = export_dlg["Normalized (dW/dlogDp)"]
+            if not units_btn.is_checked():
+                units_btn.click()
 
 
             # Time Range and Resolution
             range_btn = export_dlg.EntireRunButton
             range_btn.click()
 
-            interval_textbox = export_dlg.ComboBoxTaskBar.Edit
+            interval_combobox = export_dlg.ComboBoxTaskBar
             desired_text = "60.0 sec"
-            if interval_textbox.get_value() != desired_text:
-                interval_textbox.set_edit_text(desired_text)
+            if interval_combobox.selected_text() != desired_text:
+                interval_combobox.select(desired_text)
 
-            display_time_btn = export_dlg.window(title="hh:mm:ss", control_type="RadioButton")
-            if not display_time_btn.is_selected():
-                display_time_btn.select()
+            display_time_btn = export_dlg["hh:mm:ss"]
+            if not display_time_btn.is_checked():
+                display_time_btn.click()
 
 
             # Output File Type
-            file_type_btn = export_dlg.window(title="Text  (*.txt)", control_type="RadioButton")
-            if not file_type_btn.is_selected():
-                file_type_btn.select()
+            file_type_btn = export_dlg["Text  (*.txt)"]
+            if not file_type_btn.is_checked():
+                file_type_btn.click()
 
-            delimiter_btn = export_dlg.window(title="Comma", control_type="RadioButton")
-            if not delimiter_btn.is_selected():
-                delimiter_btn.select()
-
-            # Output File Name
-            # assumes this is preset based on settings above # TODO: check this
+            delimiter_btn = export_dlg["Comma"]
+            if not delimiter_btn.is_checked():
+                delimiter_btn.click()
+            
             
             ok_btn = export_dlg.OKButton
             ok_btn.click()
             pbar.update()
+
+window.close()
