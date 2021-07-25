@@ -82,15 +82,18 @@ with tqdm(desc="APS") as pbar:
 
                 # Units and Weights
                 unit_btn = export_dlg["dW/dlogDpRadioButton"]
-                unit_btn.click()
+                if not unit_btn.is_checked():
+                    unit_btn.click()
 
                 # Delimiter
                 delimiter_btn = export_dlg["Comma"]
-                delimiter_btn.click()
+                if not delimiter_btn.is_checked():
+                    delimiter_btn.click()
 
                 # Orientation
                 orientation_btn = export_dlg["Row"]
-                orientation_btn.click()
+                if not orientation_btn.is_checked():
+                    orientation_btn.click()
 
                 ok_btn = export_dlg.OK
                 ok_btn.click()
