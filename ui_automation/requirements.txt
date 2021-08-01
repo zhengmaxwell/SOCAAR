@@ -1,6 +1,7 @@
 certifi==2021.5.30
 colorama==0.4.4
 comtypes==1.1.10
+psycopg2==2.9.1
 pywin32==300
 pywinauto @ file:///D:/bld/pywinauto_1615667927632/work
 six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
