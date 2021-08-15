@@ -1,4 +1,5 @@
 from pywinauto.application import Application
+from pywinauto.keyboard import send_keys
 from tqdm import tqdm
 from time import sleep
 
@@ -55,8 +56,8 @@ with tqdm(desc="APS") as pbar:
                 window.wait(wait)
                 samples_list = window.ListView
                 samples_list.wait(wait, timeout=10) # TODO: check timeout
-                #samples_list.select("Sample #2")
-                # TODO: select all samples maybe
+                samples_list.select(samples_list.texts()[1::4][0]) # select first item
+                send_keys("^a^c") # select all
                 
                 window.menu_select("File->Export")
                 export_dlg = app["Export Parameters"]
